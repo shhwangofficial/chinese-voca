@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>오늘의 퀴즈</h1>
+<form action="{% url "words:grade" %}" method="POST">
+    {% csrf_token %}
+    <ul>
+    {% for word in words %}
+    <li>
+        <span>{{ forloop.counter }}: {{word.word}}</span>
+        <input type="hidden" name="quizno_{{word.pk}}" value ="{{ forloop.counter }}">
+        <label for="pinyin_{{ word.pk }}">병음:</label>
+        <input type="text" name="pinyin_{{ word.pk }}" id="pinyin_{{ word.pk }}">
+        
+        <label for="tone_{{ word.pk }}">성조:</label>
+        <input type="text" name="tone_{{ word.pk }}" id="tone_{{ word.pk }}">
+        
+        <label for="meaning_{{ word.pk }}">뜻:</label>
+        <input type="text" name="meaning_{{ word.pk }}" id="meaning_{{ word.pk }}">
+    </li>
+    <hr>
+    {% endfor %}
+    </ul>
+    <button type="submit">제출</button>
+</form>
+{% endblock content %}
