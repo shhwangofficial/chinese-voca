@@ -43,10 +43,12 @@ def grade(request):
                     ans_word.order = 1
                 ans_word.save()
                     
-                results[quiz_no] = [is_correct, [ans_word.pinyin, ans_word.tone, ans_word.meaning], [user_pinyin, user_tone, user_meaning]]
-        return render(request, 'words/result.html', {"results": results})
+                results[quiz_no] = [is_correct, ans_word.word, [ans_word.pinyin, ans_word.tone, ans_word.meaning], [user_pinyin, user_tone, user_meaning]]
+        request.session['grade_results'] = results
+        return redirect('words:grade')
     else:
-        return render(request, 'base.html')
+        results = request.session.pop('grade_results', None)  # 사용 후 삭제
+        return render(request, 'words/result.html', {'results': results})
 
 
 def add(request):
