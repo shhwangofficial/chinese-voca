@@ -15,7 +15,7 @@
         <input type="text" name="tone_{{ word.pk }}" id="tone_{{ word.pk }}">
         
         <label for="meaning_{{ word.pk }}">뜻:</label>
-        <input type="text" name="meaning_{{ word.pk }}" id="meaning_{{ word.pk }}">
+        <input type="text" name="meaning_{{ word.pk }}" id="meaning_{{ word.pk }}"><span>{{word.suffix}}</span>
     </li>
     <hr>
     {% endfor %}
