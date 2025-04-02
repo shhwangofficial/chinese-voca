@@ -6,4 +6,5 @@ class Word(models.Model):
     pinyin = models.CharField(max_length=40)
     tone = models.CharField(max_length=20)
     meaning = models.CharField(max_length=40)
+    suffix = models.CharField(max_length=20, blank=True)
     order = models.IntegerField(default=1)

@@ -43,7 +43,7 @@ def grade(request):
                     ans_word.order = 1
                 ans_word.save()
                     
-                results[quiz_no] = [is_correct, ans_word.word, [ans_word.pinyin, ans_word.tone, ans_word.meaning], [user_pinyin, user_tone, user_meaning]]
+                results[quiz_no] = [is_correct, ans_word.word, [ans_word.pinyin, ans_word.tone, ans_word.meaning], [user_pinyin, user_tone, user_meaning], ans_word.suffix]
         request.session['grade_results'] = results
         return redirect('words:grade')
     else:
