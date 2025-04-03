@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Word
+from .forms import WordForm
 # Create your views here.
 def index(request):
     return render(request, "base.html")
@@ -53,15 +54,17 @@ def grade(request):
 
 def add(request):
     if request.method == 'POST':
-        word = request.POST.get('word')
-        if Word.objects.filter(word=word).exists():
-            messages.info(request, "이미 단어가 있습니다.")
-        else:
-            pinyin = request.POST.get('pinyin')
-            tone = request.POST.get('tone')
-            meaning = request.POST.get('meaning')
-            order = 1
-            new_word = Word(word=word, pinyin=pinyin, tone=tone, meaning=meaning, order=order)
-            new_word.save()
-        return redirect("words:add")
-    return render(request, "words/add.html")
+        form = WordForm(request.POST)
+        if form.is_valid():
+            word_text = form.cleaned_data['word']
+            if Word.objects.filter(word=word_text).exists():
+                messages.info(request, "이미 단어가 있습니다.")
+            else:
+                word = form.save(commit=False)
+                word.order = 1
+                word.save()
+            return redirect("words:add")
+    context = {
+        "form" : WordForm()
+    }
+    return render(request, "words/add.html", context)
