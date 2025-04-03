@@ -60,8 +60,9 @@ def add(request):
             pinyin = request.POST.get('pinyin')
             tone = request.POST.get('tone')
             meaning = request.POST.get('meaning')
+            suffix = request.POST.get('suffix')
             order = 1
-            new_word = Word(word=word, pinyin=pinyin, tone=tone, meaning=meaning, order=order)
+            new_word = Word(word=word, pinyin=pinyin, tone=tone, meaning=meaning, order=order, suffix=suffix)
             new_word.save()
         return redirect("words:add")
     return render(request, "words/add.html")
