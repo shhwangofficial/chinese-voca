@@ -7,7 +7,10 @@ def index(request):
     return render(request, "base.html")
 
 def quiz(request):
-    words = Word.objects.all().order_by('order')[:10]
+    num_quiz = int(request.GET.get("num_quiz"))
+    if num_quiz < 0:
+        return render(request, "base.html")
+    words = Word.objects.all().order_by('order')[:num_quiz]
     context = {
         "words": words
     }
@@ -61,6 +64,7 @@ def add(request):
                 word = form.save(commit=False)
                 word.order = 1
                 word.save()
+                messages.info(request, f"{word.word}가 추가되었습니다.")
             return redirect("words:add")
     else:
         form = WordForm()
