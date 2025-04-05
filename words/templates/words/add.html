@@ -3,22 +3,7 @@
 <h1>단어 추가</h1>
 <form action="{% url "words:add" %}" method="POST">
     {% csrf_token %}
-    
-        <label for="word">단어 :</label>
-        <input type="text" name="word" id="word">
-        <br>
-        <label for="pinyin">병음 :</label>
-        <input type="text" name="pinyin" id="pinyin">
-        <br>
-        <label for="tone">성조 :</label>
-        <input type="text" name="tone" id="tone">
-        <br>
-        <label for="meaning">의미 : </label>
-        <input type="text" name="meaning" id="meaning">
-        <br>
-        <label for="suffix">어미 : </label>
-        <input type="text" name="suffix" id="suffix">
-        <br>
+    {{form.as_p}}
     <button type="submit">제출</button>
 </form>
 {% if note %}

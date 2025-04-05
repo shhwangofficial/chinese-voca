@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Word
+from .forms import WordForm
 # Create your views here.
 def index(request):
     return render(request, "base.html")
@@ -26,13 +27,11 @@ def grade(request):
                     continue
                 
                 quiz_no      = request.POST.get(f'quizno_{pk}', '').strip()
-                # user_word    = request.POST.get(f'word_{pk}', '').strip()
                 user_pinyin  = request.POST.get(f'pinyin_{pk}', '').strip()
                 user_tone    = request.POST.get(f'tone_{pk}', '').strip()
                 user_meaning = request.POST.get(f'meaning_{pk}', '').strip()
 
                 is_correct = (
-                    # user_word == ans_word.word and
                     user_pinyin == ans_word.pinyin and
                     user_tone == ans_word.tone and
                     user_meaning == ans_word.meaning
@@ -46,23 +45,26 @@ def grade(request):
                 results[quiz_no] = [is_correct, ans_word.word, [ans_word.pinyin, ans_word.tone, ans_word.meaning], [user_pinyin, user_tone, user_meaning], ans_word.suffix]
         request.session['grade_results'] = results
         return redirect('words:grade')
-    else:
-        results = request.session.pop('grade_results', None)  # 사용 후 삭제
-        return render(request, 'words/result.html', {'results': results})
+    
+    results = request.session.pop('grade_results', None)  # 사용 후 삭제
+    return render(request, 'words/result.html', {'results': results})
 
 
 def add(request):
     if request.method == 'POST':
-        word = request.POST.get('word')
-        if Word.objects.filter(word=word).exists():
-            messages.info(request, "이미 단어가 있습니다.")
-        else:
-            pinyin = request.POST.get('pinyin')
-            tone = request.POST.get('tone')
-            meaning = request.POST.get('meaning')
-            suffix = request.POST.get('suffix')
-            order = 1
-            new_word = Word(word=word, pinyin=pinyin, tone=tone, meaning=meaning, order=order, suffix=suffix)
-            new_word.save()
-        return redirect("words:add")
-    return render(request, "words/add.html")
+        form = WordForm(request.POST)
+        if form.is_valid():
+            word = form.cleaned_data['word']
+            if Word.objects.filter(word=word).exists():
+                messages.info(request, "이미 단어가 있습니다.")
+            else:
+                word = form.save(commit=False)
+                word.order = 1
+                word.save()
+            return redirect("words:add")
+    else:
+        form = WordForm()
+    context = {
+        "form" : form
+    }
+    return render(request, "words/add.html", context)
