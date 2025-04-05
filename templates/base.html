@@ -10,7 +10,6 @@
     <div class = "m-3">
     <a href={% url "words:index" %}>[메인 페이지]</a>
     <form action="{% url "words:quiz" %}" method="GET">
-        {% csrf_token %}
         <label for="num_quiz">[오늘의 퀴즈]</label>
         <input type="number" name="num_quiz" id="num_quiz">
         <input type="submit" value="풀러가기">
