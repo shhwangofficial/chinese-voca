@@ -36,7 +36,7 @@ def grade(request):
 
                 is_correct = (
                     user_pinyin == ans_word.pinyin and
-                    user_tone == ans_word.tone and
+                    # user_tone == ans_word.tone and
                     user_meaning == ans_word.meaning
                 )
                 if is_correct:
