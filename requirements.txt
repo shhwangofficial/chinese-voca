@@ -9,7 +9,7 @@ django-extensions==3.2.3
 djlint==1.36.4
 EditorConfig==0.17.0
 executing==2.2.0
-ipython==9.0.2
+ipython==8.18.1
 ipython_pygments_lexers==1.1.1
 jedi==0.19.2
 jsbeautifier==1.15.4
