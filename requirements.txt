@@ -8,6 +8,7 @@ Django==4.2
 django-extensions==3.2.3
 djlint==1.36.4
 EditorConfig==0.17.0
+exceptiongroup==1.2.2
 executing==2.2.0
 ipython==8.18.1
 ipython_pygments_lexers==1.1.1
@@ -25,7 +26,9 @@ regex==2024.11.6
 six==1.17.0
 sqlparse==0.5.3
 stack-data==0.6.3
+tomli==2.2.1
 tqdm==4.67.1
 traitlets==5.14.3
+typing_extensions==4.13.2
 tzdata==2025.2
 wcwidth==0.2.13
