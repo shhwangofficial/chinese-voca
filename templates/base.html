@@ -16,10 +16,14 @@
       <a href={% url "words:index" %}>[메인 페이지]</a>
       <form action="{% url "words:quiz" %}" method="GET">
         <label for="num_quiz">[오늘의 퀴즈]</label>
-        <input type="number" name="num_quiz" id="num_quiz">
+        <input type="number" name="num_quiz" id="num_quiz" required>
         <input type="submit" value="풀러가기">
       </form>
       <a href={% url "words:add" %}>[단어 추가]</a>
+      <form action="{% url "accounts:logout" %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="logout">
+      </form>
     </div>
     <div class = "m-3">
       {% block content %}
