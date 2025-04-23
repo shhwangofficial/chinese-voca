@@ -3,7 +3,6 @@ from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods, require_POST
 
 @require_http_methods(['GET', 'POST'])
@@ -22,11 +21,12 @@ def login(request):
     }
     return render(request, 'accounts/login.html', context)
 
-@login_required
+
 @require_POST
 def logout(request):
     auth_logout(request)
     return redirect('words:index')
+
 
 @require_http_methods(['GET', 'POST'])
 def signup(request):
