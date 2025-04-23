@@ -2,10 +2,18 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Word
 from .forms import WordForm
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
 # Create your views here.
+@require_http_methods(['GET'])
 def index(request):
-    return render(request, "base.html")
-
+    if request.user.is_authenticated:
+        return render(request, "base.html")
+    else:
+        return redirect("accounts:login")
+    
+@login_required
+@require_http_methods(['GET'])
 def quiz(request):
     num_quiz = int(request.GET.get("num_quiz"))
     if num_quiz <= 0:
@@ -16,7 +24,8 @@ def quiz(request):
     }
     return render(request, "words/quiz.html", context)
     
-
+@login_required
+@require_http_methods(['GET', 'POST'])
 def grade(request):
     if request.method == 'POST':
         results = {}
@@ -52,7 +61,8 @@ def grade(request):
     results = request.session.pop('grade_results', None)  # 사용 후 삭제
     return render(request, 'words/result.html', {'results': results})
 
-
+@login_required
+@require_http_methods(['GET', 'POST'])
 def add(request):
     if request.method == 'POST':
         form = WordForm(request.POST)
