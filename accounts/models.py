@@ -9,4 +9,7 @@ class LearningWord(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     word = models.ForeignKey(Word, on_delete=models.CASCADE)
     learning_since = models.DateTimeField(auto_now_add=True)
-    to_be_revised = models.DateTimeField(auto_now_add=True)
+    last_time_revised = models.DateTimeField(auto_now_add=True)
+    to_be_revised = models.DateTimeField()
+    learning_term = models.IntegerField(default=0)
+    no_of_revision = models.IntegerField(default=1)
