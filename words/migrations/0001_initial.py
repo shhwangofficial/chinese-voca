@@ -7,19 +7,26 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Word',
+            name="Word",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('word', models.CharField(max_length=20)),
-                ('pinyin', models.CharField(max_length=40)),
-                ('tone', models.CharField(max_length=20)),
-                ('meaning', models.CharField(max_length=40)),
-                ('suffix', models.CharField(blank=True, max_length=20)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("word", models.CharField(max_length=20)),
+                ("pinyin", models.CharField(max_length=40)),
+                ("tone", models.CharField(max_length=20)),
+                ("meaning", models.CharField(max_length=40)),
+                ("suffix", models.CharField(blank=True, max_length=20)),
             ],
         ),
     ]

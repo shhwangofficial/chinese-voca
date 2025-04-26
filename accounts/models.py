@@ -1,9 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from words.models import Word 
+from words.models import Word
+
+
 # Create your models here.
 class User(AbstractUser):
-    learning = models.ManyToManyField(Word, through='LearningWord', related_name='learned')
+    learning = models.ManyToManyField(
+        Word, through="LearningWord", related_name="learned"
+    )
+
 
 class LearningWord(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

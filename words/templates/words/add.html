@@ -2,21 +2,16 @@
 {% block content %}
   <h1>단어 추가</h1>
   {% if messages %}
-  <ul class="messages">
-    {% for message in messages %}
-      <li {% if message.tags %}class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-    {% endfor %}
-  </ul>
-{% endif %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li {% if message.tags %}class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
   <form action="{% url "words:add" %}" method="POST">
     {% csrf_token %}
-    {% if form_type == "LearnWord" or not form_type %}
-    <input type="hidden" name="form_type" value="LearnWord">
-    {% elif form_type == "Word" %}
-    <input type="hidden" name="form_type" value="Word">
-    {% endif %}
+    <input type="hidden" name="form_type" value={{ form_type }}>
     {{ form.as_p }}
     <button type="submit">제출</button>
   </form>
-
 {% endblock content %}
