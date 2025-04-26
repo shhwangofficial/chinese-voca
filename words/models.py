@@ -7,4 +7,3 @@ class Word(models.Model):
     tone = models.CharField(max_length=20)
     meaning = models.CharField(max_length=40)
     suffix = models.CharField(max_length=20, blank=True)
-    order = models.IntegerField(default=1)
