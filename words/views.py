@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Word
-from accounts.models import LearningWord
-from .forms import WordForm, LearnWordForm
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from datetime import timedelta
+from .models import Word
+from accounts.models import LearningWord
+from .forms import WordForm, LearnWordForm
 
 
 @require_http_methods(["GET"])
@@ -18,13 +18,16 @@ def index(request):
 
 @require_http_methods(["GET"])
 def quiz(request):
-    num_quiz = int(request.GET.get("num_quiz"))
+    try:
+        num_quiz = int(request.GET.get("num_quiz", 0))
+    except (TypeError, ValueError):
+        num_quiz = 0
     if num_quiz <= 0:
         return render(request, "base.html")
     user = request.user
     words = user.learning.filter(
         learningword__to_be_revised__lt=timezone.now()
-    ).order_by("learningword__to_be_revised")
+    ).order_by("learningword__to_be_revised")[:num_quiz]
     context = {"words": words}
     return render(request, "words/quiz.html", context)
 
