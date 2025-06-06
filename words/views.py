@@ -14,7 +14,10 @@ def index(request):
 
 @require_http_methods(['GET'])
 def quiz(request):
-    num_quiz = int(request.GET.get("num_quiz"))
+    try:
+        num_quiz = int(request.GET.get("num_quiz", "0"))
+    except (TypeError, ValueError):
+        num_quiz = 0
     if num_quiz <= 0:
         return render(request, "base.html")
     words = Word.objects.all().order_by('order')[:num_quiz]
