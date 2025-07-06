@@ -18,3 +18,5 @@ class LearningWord(models.Model):
     to_be_revised = models.DateTimeField()
     learning_term = models.IntegerField(default=0)
     no_of_revision = models.IntegerField(default=1)
+    wrong_count = models.IntegerField(default=0)  # 틀린 횟수
+    correct_count = models.IntegerField(default=0)  # 맞은 횟수
