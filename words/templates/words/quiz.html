@@ -1,38 +1,346 @@
 {% extends "base.html" %}
 {% load static %}
+<link rel="stylesheet" href="{% static 'words/css/inputs.css' %}">
+{% block title %}
+  퀴즈 - 중국어 단어장
+{% endblock title %}
 {% block head %}
-  <link rel="stylesheet" href="{% static 'words/css/quiz.css' %}">
+  <style>
+    .quiz-container {
+        max-width: 800px;
+        width: 100%;
+        margin: 0 auto;
+        padding-left: 2rem;
+        padding-right: 2rem;
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+    
+    .quiz-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .quiz-progress {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        height: 8px;
+        margin: 1rem 0;
+        overflow: hidden;
+    }
+    
+    .quiz-progress-bar {
+        background: rgba(255, 255, 255, 0.8);
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+    
+    .quiz-item {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        transition: var(--transition);
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .quiz-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .word-display {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .word-text {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .word-suffix {
+        font-size: 1.2rem;
+        color: var(--secondary-color);
+        font-weight: 500;
+    }
+    
+    .input-group-custom {
+        margin-bottom: 1.5rem;
+    }
+    
+    .input-group-custom label {
+        font-weight: 500;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .input-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    .submit-section {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid #E9ECEF;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, var(--success-color), #6BCB1A);
+        color: white;
+        border: none;
+        padding: 1rem 3rem;
+        border-radius: var(--border-radius);
+        font-size: 1.2rem;
+        font-weight: 600;
+        transition: var(--transition);
+        box-shadow: var(--box-shadow);
+    }
+    
+    .btn-submit:hover {
+        background: linear-gradient(135deg, #6BCB1A, var(--success-color));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(126, 211, 33, 0.3);
+        color: white;
+    }
+    
+    .quiz-instructions {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    @media (max-width: 768px) {
+        .quiz-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .input-row {
+            grid-template-columns: 1fr;
+        }
+        .word-text {
+            font-size: 2.5rem;
+        }
+        .quiz-item {
+            padding: 1.5rem;
+        }
+    }
+    
+    .input-group-fullwidth {
+      width: 100%;
+    }
+  </style>
 {% endblock head %}
 {% block content %}
-  <h1>오늘의 퀴즈</h1>
-  <form action="{% url "words:grade" %}" method="POST" autocomplete="off">
-    {% csrf_token %}
-    <ul style="list-style:none; padding:0;">
+  <div class="quiz-container">
+    <!-- 퀴즈 헤더 -->
+    <div class="quiz-header">
+      <h1 class="mb-3">
+        <i class="fas fa-question-circle me-3"></i>
+        오늘의 퀴즈
+      </h1>
+      <p class="lead mb-3">총 {{ words|length }}문제를 풀어보세요!</p>
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+    <!-- 퀴즈 안내 -->
+    <div class="quiz-instructions">
+      <h5>
+        <i class="fas fa-info-circle text-primary me-2"></i>퀴즈 안내
+      </h5>
+      <ul class="mb-0">
+        <li>중국어 단어를 보고 병음과 의미를 입력해주세요</li>
+        <li>성조는 선택사항입니다 (정답에 포함되지 않음)</li>
+        <li>모든 문제를 풀고 제출 버튼을 눌러주세요</li>
+      </ul>
+    </div>
+    <!-- 퀴즈 폼 -->
+    <form action="{% url 'words:grade' %}"
+          method="post"
+          autocomplete="off"
+          id="quizForm">
+      {% csrf_token %}
       {% for word in words %}
-        <li class="quiz-item">
+        <div class="quiz-item">
           <input type="hidden"
                  name="quizno_{{ word.pk }}"
                  value="{{ forloop.counter }}">
-          <input type="text"
-                 name="tone_{{ word.pk }}"
-                 id="tone_{{ word.pk }}"
-                 class="tone-input"
-                 placeholder="성조">
-          <input type="text"
-                 name="pinyin_{{ word.pk }}"
-                 id="pinyin_{{ word.pk }}"
-                 class="pinyin-input"
-                 placeholder="병음">
-          <span class="word-text">{{ word.word }}</span>
-          <div style="margin-top:5px;">
-            <label for="meaning_{{ word.pk }}">뜻:</label>
-            <input type="text" name="meaning_{{ word.pk }}" id="meaning_{{ word.pk }}">
-            <span>{{ word.suffix }}</span>
+          <!-- 단어 표시 -->
+          <div class="word-display">
+            <div class="word-text">{{ word.word }}</div>
+            {% if word.suffix %}<div class="word-suffix">{{ word.suffix }}</div>{% endif %}
           </div>
-        </li>
-        <hr>
+          <!-- 입력 필드들 -->
+          <div class="input-row">
+            <div class="input-group-custom input-group-fullwidth">
+              <div id="dynamic-pinyin-tone-{{ word.pk }}"></div>
+              <input type="hidden"
+                     name="pinyin_{{ word.pk }}"
+                     id="hidden-pinyin-{{ word.pk }}"
+                     required>
+              <input type="hidden"
+                     name="tone_{{ word.pk }}"
+                     id="hidden-tone-{{ word.pk }}">
+            </div>
+          </div>
+          <div class="input-group-custom">
+            <label for="meaning_{{ word.pk }}">의미</label>
+            <input type="text"
+                   name="meaning_{{ word.pk }}"
+                   id="meaning_{{ word.pk }}"
+                   placeholder="예: 안녕하세요"
+                   required>
+          </div>
+        </div>
       {% endfor %}
-    </ul>
-    <button type="submit">제출</button>
-  </form>
+      <!-- 제출 섹션 -->
+      <div class="submit-section">
+        <button type="submit" class="btn-submit">
+          <i class="fas fa-paper-plane me-2"></i>
+          퀴즈 제출하기
+        </button>
+      </div>
+    </form>
+  </div>
+  <script>
+// 진행률 표시
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBar = document.getElementById('progressBar');
+    const inputs = document.querySelectorAll('input[type="text"]');
+    const totalInputs = inputs.length;
+    
+    function updateProgress() {
+        const filledInputs = Array.from(inputs).filter(input => input.value.trim() !== '').length;
+        const progress = (filledInputs / totalInputs) * 100;
+        progressBar.style.width = progress + '%';
+    }
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', updateProgress);
+    });
+    
+    // 폼 제출 시 확인
+    document.getElementById('quizForm').addEventListener('submit', function(e) {
+        const requiredInputs = document.querySelectorAll('input[required]');
+        const emptyRequired = Array.from(requiredInputs).filter(input => input.value.trim() === '');
+        
+        if (emptyRequired.length > 0) {
+            e.preventDefault();
+            alert('모든 필수 항목을 입력해주세요!');
+            emptyRequired[0].focus();
+        }
+    });
+});
+
+// 퀴즈 병음/성조 동적 입력 UI 생성
+document.addEventListener('DOMContentLoaded', function() {
+    // 각 퀴즈 단어별로 동적 UI 생성
+    {% for word in words %}
+    (function() {
+        const wordStr = `{{ word.word }}`;
+        const pk = `{{ word.pk }}`;
+        const dynDiv = document.getElementById('dynamic-pinyin-tone-' + pk);
+        const hiddenPinyin = document.getElementById('hidden-pinyin-' + pk);
+        const hiddenTone = document.getElementById('hidden-tone-' + pk);
+        if (!dynDiv || !hiddenPinyin || !hiddenTone) return;
+
+        // labelCol 생성
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.gap = '0.7rem';
+        row.style.marginBottom = '0.5rem';
+        row.style.alignItems = 'flex-start';
+        row.style.justifyContent = 'flex-start';
+        row.style.marginLeft = '0';
+        row.style.width = '100%';
+
+        const labelCol = document.createElement('div');
+        labelCol.style.display = 'flex';
+        labelCol.style.flexDirection = 'column';
+        labelCol.style.alignItems = 'flex-start';
+        labelCol.style.justifyContent = 'center';
+        labelCol.style.gap = '1.5rem';
+        labelCol.style.width = '40px';
+        labelCol.style.alignSelf = 'center';
+        labelCol.innerHTML = `
+          <label style="display:flex;align-items:center;font-weight:600;font-size:0.98rem;margin-bottom:0.1rem;">성조</label>
+          <label style="display:flex;align-items:center;font-weight:600;font-size:0.98rem;">병음</label>
+        `;
+        row.appendChild(labelCol);
+
+        // 성조/병음 입력 세트
+        const toneSymbols = ['ˉ','ˊ','ˇ','ˋ','•'];
+        const toneNums = ['1','2','3','4','5'];
+        for (let i = 0; i < wordStr.length; i++) {
+            const col = document.createElement('div');
+            col.style.display = 'flex';
+            col.style.flexDirection = 'column';
+            col.style.alignItems = 'center';
+            col.style.gap = '0.5rem';
+
+            // 성조 드롭다운
+            const select = document.createElement('select');
+            select.className = 'form-select-sm custom-select';
+            select.style.width = '64px';
+            select.style.textAlign = 'center';
+            select.style.fontSize = '1.5rem';
+            select.style.height = '2em';
+            select.style.padding = '0.5em 0 0 0';
+            select.style.lineHeight = '0.8';
+            for (let j = 0; j < 5; j++) {
+                const opt = document.createElement('option');
+                opt.value = toneNums[j];
+                opt.textContent = toneSymbols[j];
+                select.appendChild(opt);
+            }
+            select.dataset.idx = i;
+            select.addEventListener('change', updateHidden);
+            col.appendChild(select);
+
+            // 병음 input
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.maxLength = 8;
+            inp.className = 'form-control-custom pinyin-input';
+            inp.style.width = '97px';
+            inp.style.textAlign = 'center';
+            inp.placeholder = `병음${i+1}`;
+            inp.dataset.idx = i;
+            inp.addEventListener('input', updateHidden);
+            col.appendChild(inp);
+
+            row.appendChild(col);
+        }
+        dynDiv.appendChild(row);
+
+        function updateHidden() {
+            // 병음
+            const pinyinInputs = dynDiv.querySelectorAll('input');
+            const pinyinVal = Array.from(pinyinInputs).map(inp => inp.value.trim()).join(' ');
+            hiddenPinyin.value = pinyinVal;
+            // 성조
+            const toneSelects = dynDiv.querySelectorAll('select');
+            const toneVal = Array.from(toneSelects).map(sel => sel.value).join(' ');
+            hiddenTone.value = toneVal;
+        }
+    })();
+    {% endfor %}
+});
+  </script>
 {% endblock content %}

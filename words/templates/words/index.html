@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+{% block title %}
+  홈 - 중국어 단어장
+{% endblock title %}
+{% block head %}
+  <style>
+    .quiz-modern-card {
+        border: none;
+        border-radius: 18px;
+        box-shadow: 0 6px 24px rgba(74, 144, 226, 0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+        background: white;
+        padding: 2.5rem 2rem;
+        transition: box-shadow 0.2s;
+    }
+    .quiz-modern-card:hover {
+        box-shadow: 0 12px 32px rgba(74, 144, 226, 0.18), 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .quiz-header-row {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-bottom: 0;
+    }
+    .quiz-header-row h3 {
+        margin-bottom: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333;
+        flex-shrink: 0;
+    }
+    .quiz-header-row label {
+        margin-bottom: 0;
+        font-weight: 600;
+        min-width: 90px;
+        color: #4A90E2;
+        flex-shrink: 0;
+    }
+    .quiz-header-row .quiz-input-modern {
+        width: 90px;
+        max-width: 110px;
+        min-width: 60px;
+        margin-right: 1rem;
+        text-align: center;
+    }
+    .quiz-header-row .quiz-btn-modern {
+        background: linear-gradient(135deg, #4A90E2, #6BCB1A);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.15rem;
+        font-weight: 600;
+        padding: 0.9rem 1.2rem;
+        box-shadow: 0 2px 8px rgba(74,144,226,0.10);
+        transition: background 0.2s, box-shadow 0.2s;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+        width: auto;
+        min-width: 0;
+        white-space: normal;
+        flex-shrink: 1;
+        box-sizing: border-box;
+    }
+    .quiz-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        box-shadow: 0 2px 8px rgba(102,126,234,0.15);
+        margin-right: 1.2rem;
+    }
+    .quiz-input-modern {
+        border-radius: 14px;
+        background: #f5f7fa;
+        border: 2px solid #e3eaf5;
+        font-size: 1.1rem;
+        box-shadow: 0 1px 4px rgba(74,144,226,0.07);
+        transition: border-color 0.2s, box-shadow 0.2s;
+        padding: 0.75rem 1.25rem;
+    }
+    .quiz-input-modern:focus {
+        border-color: #4A90E2;
+        background: #fff;
+        box-shadow: 0 0 0 2px rgba(74,144,226,0.12);
+    }
+    .quiz-btn-modern:hover {
+        background: linear-gradient(135deg, #6BCB1A, #4A90E2);
+        box-shadow: 0 4px 16px rgba(74,144,226,0.18);
+        color: #fff;
+    }
+    /* 현대적 카드 스타일 */
+    .card-modern {
+        border: none;
+        border-radius: 18px;
+        box-shadow: 0 6px 24px rgba(74, 144, 226, 0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+        background: white;
+        padding: 2rem 1.5rem 1.5rem 1.5rem;
+        margin-bottom: 2rem;
+        transition: box-shadow 0.2s;
+    }
+    .card-modern:hover {
+        box-shadow: 0 12px 32px rgba(74, 144, 226, 0.18), 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .list-modern {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .list-modern-item {
+        background: #f7f9fc;
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
+        padding: 1rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        box-shadow: 0 1px 4px rgba(74,144,226,0.04);
+        border: none;
+        transition: background 0.2s, box-shadow 0.2s;
+        gap: 2rem;
+    }
+    .list-modern-item:hover {
+        background: #eef3fa;
+        box-shadow: 0 2px 8px rgba(74,144,226,0.08);
+    }
+    .list-modern-left {
+        flex: 1 1 0;
+        display: flex;
+        align-items: center;
+        min-width: 0;
+    }
+    .list-modern-word {
+        font-weight: 700;
+        font-size: 1.28rem;
+        word-break: break-all;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.3;
+        margin-bottom: 0;
+    }
+    .list-modern-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: space-between;
+        min-width: 110px;
+        gap: 0.15rem;
+    }
+    .list-modern-right .text-success {
+        font-weight: 500;
+    }
+    .list-modern-right .text-danger {
+        font-weight: 500;
+    }
+    .list-modern-right .text-muted {
+        font-size: 0.97rem;
+        margin-top: 0.2rem;
+    }
+    /* 새로운 단어 추가 버튼만 현대적으로 */
+    .btn-modern-add {
+        background: linear-gradient(135deg, #6BCB1A, #4A90E2);
+        color: #fff;
+        border: none;
+        border-radius: 14px;
+        font-size: 1.15rem;
+        font-weight: 600;
+        padding: 1rem 2.5rem;
+        box-shadow: 0 2px 8px rgba(74,144,226,0.10);
+        transition: background 0.2s, box-shadow 0.2s;
+    }
+    .btn-modern-add:hover {
+        background: linear-gradient(135deg, #4A90E2, #6BCB1A);
+        box-shadow: 0 4px 16px rgba(74,144,226,0.18);
+        color: #fff;
+    }
+    .quiz-header-form {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0;
+    }
+    @media (max-width: 600px) {
+        .quiz-header-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+        .quiz-btn-modern {
+            width: 100%;
+            display: block;
+        }
+    }
+  </style>
+{% endblock head %}
+{% block content %}
+  <div class="row">
+    <!-- 단어 추가 카드 -->
+    <div class="col-12 mb-4">
+      <div class="card card-custom">
+        <div class="card-body text-center">
+          <div class="row align-items-center">
+            <div class="col-md-8 text-md-start">
+              <h3 class="card-title mb-2">
+                <i class="fas fa-plus-circle text-success me-2"></i>
+                새로운 단어 추가
+              </h3>
+              <p class="text-muted mb-0">새로운 중국어 단어를 추가하고 학습해보세요.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+              <a href="{% url 'words:add' %}" class="btn btn-modern-add">
+                <i class="fas fa-plus me-2"></i>단어 추가
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 통계 카드 -->
+    <div class="col-12 mb-4">
+      <div class="stats-card">
+        <div class="stats-number">{{ total_learning_words }}</div>
+        <div class="stats-label">학습 중인 단어</div>
+      </div>
+    </div>
+    <!-- 오늘의 퀴즈 섹션 -->
+    <div class="col-12 mb-4">
+      <div class="card quiz-modern-card">
+        <div class="card-body">
+          <div class="quiz-header-row">
+            <div class="quiz-icon">
+              <i class="fas fa-question-circle"></i>
+            </div>
+            <h3>오늘의 퀴즈</h3>
+            <label for="num_quiz">퀴즈 문제 수</label>
+            <form action="{% url 'words:quiz' %}" method="get" class="quiz-header-form">
+              <input type="number"
+                     class="form-control quiz-input-modern"
+                     name="num_quiz"
+                     id="num_quiz"
+                     min="1"
+                     max="20"
+                     value="5"
+                     placeholder="1~20"
+                     required>
+              <button type="submit" class="btn quiz-btn-modern">
+                <i class="fas fa-play me-2"></i>퀴즈 시작
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 오늘 복습할 단어들 -->
+    {% if today_words %}
+      <div class="col-md-6 mb-4">
+        <div class="card card-modern">
+          <div class="card-body">
+            <h4 class="card-title mb-3">
+              <i class="fas fa-clock text-warning me-2"></i>
+              오늘 복습할 단어
+              <span class="badge bg-warning text-dark ms-2">{{ today_review_words }}개</span>
+            </h4>
+            <ul class="list-modern">
+              {% for learning_word in today_words %}
+                <li class="list-modern-item">
+                  <div class="list-modern-left">
+                    <span class="list-modern-word">{{ learning_word.word.word }}</span>
+                  </div>
+                  <div class="list-modern-right">
+                    <span class="text-success">
+                      <i class="fas fa-check me-1"></i>{{ learning_word.correct_count }}회 정답
+                    </span>
+                    <span class="text-danger">
+                      <i class="fas fa-times me-1"></i>{{ learning_word.wrong_count }}회 오답
+                    </span>
+                    <span class="text-muted">
+                      <i class="fas fa-calendar me-1"></i>{{ learning_word.days_since_revision }}
+                    </span>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+            {% if today_review_words > 5 %}
+              <div class="text-center mt-3">
+                <small class="text-muted">그 외 {{ today_review_words|add:"-5" }}개의 단어가 더 있습니다.</small>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    <!-- 최근 추가한 단어들 -->
+    {% if recent_words %}
+      <div class="col-md-6 mb-4">
+        <div class="card card-modern">
+          <div class="card-body">
+            <h4 class="card-title mb-3">
+              <i class="fas fa-history text-success me-2"></i>
+              최근 추가한 단어
+            </h4>
+            <ul class="list-modern">
+              {% for learning_word in recent_words %}
+                <li class="list-modern-item">
+                  <div class="list-modern-left">
+                    <span class="list-modern-word">{{ learning_word.word.word }}</span>
+                  </div>
+                  <div class="list-modern-right">
+                    <span class="text-success">
+                      <i class="fas fa-check me-1"></i>{{ learning_word.correct_count }}회 정답
+                    </span>
+                    <span class="text-danger">
+                      <i class="fas fa-times me-1"></i>{{ learning_word.wrong_count }}회 오답
+                    </span>
+                    <span class="text-muted">
+                      <i class="fas fa-plus me-1"></i>{{ learning_word.days_since_added }}
+                    </span>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock content %}

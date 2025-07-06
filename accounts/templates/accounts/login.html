@@ -1,16 +1,264 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-  </head>
-  <body>
-    <form action="{% url "accounts:login" %}" method="POST">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <input type="submit" value="login">
-    </form>
-    <a href="{% url "accounts:signup" %}">signup</a>
-  </body>
-</html>
+{% extends "base.html" %}
+{% block title %}
+  로그인 - 중국어 단어장
+{% endblock title %}
+{% block head %}
+  <style>
+      /* base.html의 main-container 스타일을 덮어쓰기 */
+      .main-container {
+          background: transparent !important;
+          backdrop-filter: none !important;
+          box-shadow: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          max-width: none !important;
+          min-height: 100vh !important;
+      }
+      
+      .container {
+          max-width: none !important;
+          padding: 0 !important;
+      }
+      
+            .auth-container {
+          width: 90%;
+          max-width: 550px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          padding: 2rem;
+      }
+    
+    .auth-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: var(--border-radius);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        padding: 3rem;
+        transition: var(--transition);
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .auth-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .form-group-custom {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group-custom label {
+        font-weight: 500;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-group-custom input {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #E9ECEF;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    
+    .form-group-custom input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+    }
+    
+    .btn-login {
+        background: linear-gradient(135deg, var(--primary-color), #357ABD);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: var(--border-radius);
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: var(--transition);
+        box-shadow: var(--box-shadow);
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-login:hover {
+        background: linear-gradient(135deg, #357ABD, var(--primary-color));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(74, 144, 226, 0.3);
+        color: white;
+    }
+    
+    .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #E9ECEF;
+    }
+    
+    .auth-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+    
+    .auth-link:hover {
+        color: #357ABD;
+        text-decoration: underline;
+    }
+    
+    .welcome-text {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .alert-custom {
+        border-radius: var(--border-radius);
+        border: none;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .alert-danger {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        color: white;
+        border-left: 4px solid #d63031;
+    }
+    
+    .alert-success {
+        background: linear-gradient(135deg, #00b894, #00a085);
+        color: white;
+        border-left: 4px solid #00b894;
+    }
+    
+    .error-feedback {
+        color: #d63031;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-group-custom input.error {
+        border-color: #d63031;
+        box-shadow: 0 0 0 0.2rem rgba(214, 48, 49, 0.25);
+    }
+    
+    /* 반응형 디자인 */
+    @media (max-width: 768px) {
+        .auth-container {
+            width: 95%;
+            max-width: 400px;
+            padding: 1rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .auth-container {
+            width: 98%;
+            max-width: 350px;
+            padding: 0.5rem;
+        }
+    }
+  </style>
+{% endblock head %}
+{% block content %}
+  <div class="auth-container">
+    <!-- 로그인 폼 -->
+    <div class="auth-card">
+      {% if error_message %}
+        <div class="alert alert-danger alert-custom mb-4" role="alert">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+            <div>
+              <h6 class="alert-heading mb-1">로그인 실패</h6>
+              <p class="mb-0">{{ error_message }}</p>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      {% if messages %}
+        {% for message in messages %}
+          {% if message.tags == 'success' %}
+            <div class="alert alert-success alert-custom mb-4" role="alert">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle me-3 fs-4"></i>
+                <div>
+                  <p class="mb-0">{{ message }}</p>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      <form action="{% url 'accounts:login' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group-custom">
+          <label for="{{ form.username.id_for_label }}">
+            <i class="fas fa-user me-1"></i>사용자명
+          </label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <div class="error-feedback">
+              <i class="fas fa-times-circle me-1"></i>{{ form.username.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+        <div class="form-group-custom">
+          <label for="{{ form.password.id_for_label }}">
+            <i class="fas fa-lock me-1"></i>비밀번호
+          </label>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <div class="alert alert-danger alert-custom mt-2" role="alert">
+              <i class="fas fa-times-circle me-1"></i>{{ form.password.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+        <button type="submit" class="btn-login">
+          <i class="fas fa-sign-in-alt me-2"></i>로그인
+        </button>
+      </form>
+      <!-- 회원가입 링크 -->
+      <div class="auth-footer">
+        <p class="mb-2">계정이 없으신가요?</p>
+        <a href="{% url 'accounts:signup' %}" class="auth-link">
+          <i class="fas fa-user-plus me-1"></i>회원가입
+        </a>
+      </div>
+    </div>
+  </div>
+  <script>
+// 폼 필드에 Bootstrap 클래스 추가
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.classList.add('form-control-custom');
+        
+        // 오류가 있는 필드에 시각적 피드백 추가
+        if (input.nextElementSibling && input.nextElementSibling.classList.contains('error-feedback')) {
+            input.classList.add('error');
+        }
+    });
+    
+    // 입력 시 오류 상태 제거
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('error');
+            const errorFeedback = this.parentNode.querySelector('.error-feedback');
+            if (errorFeedback) {
+                errorFeedback.style.display = 'none';
+            }
+        });
+    });
+});
+  </script>
+{% endblock content %}

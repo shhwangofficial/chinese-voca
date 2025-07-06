@@ -1,0 +1,25 @@
+/* 성조 드롭다운 공통 스타일 */
+.form-select-sm.custom-select {
+  height: 2em !important;
+  padding: 0.5em 0 0 0 !important;
+  line-height: 0.8 !important;
+  font-size: 1.5rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: white;
+  border: 1px solid #ccc;
+  width: 64px;
+  text-align: center;
+}
+.form-select-sm.custom-select:focus {
+  border-color: #4a90e2;
+  outline: none;
+  box-shadow: 0 0 0 0.15rem rgba(74, 144, 226, 0.13);
+}
+
+/* 병음 input 공통 스타일 */
+.form-control-custom.pinyin-input {
+  width: 97px;
+  text-align: center;
+}

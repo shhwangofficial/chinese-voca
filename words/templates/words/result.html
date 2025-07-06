@@ -1,21 +1,300 @@
 {% extends "base.html" %}
+{% block title %}
+  퀴즈 결과 - 중국어 단어장
+{% endblock title %}
+{% block head %}
+  <style>
+    .result-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .result-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .result-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .summary-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+    }
+    
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .summary-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .summary-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .correct {
+        color: var(--success-color);
+    }
+    
+    .incorrect {
+        color: var(--danger-color);
+    }
+    
+    .result-item {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+        border-left: 4px solid #E9ECEF;
+    }
+    
+    .result-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .result-item.correct {
+        border-left-color: var(--success-color);
+    }
+    
+    .result-item.incorrect {
+        border-left-color: var(--danger-color);
+    }
+    
+    .word-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .word-text {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark-color);
+    }
+    
+    .result-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .result-badge.correct {
+        background: rgba(126, 211, 33, 0.1);
+        color: var(--success-color);
+    }
+    
+    .result-badge.incorrect {
+        background: rgba(208, 2, 27, 0.1);
+        color: var(--danger-color);
+    }
+    
+    .answer-comparison {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+    
+    .answer-section {
+        background: #f8f9fa;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+    }
+    
+    .answer-section h6 {
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .answer-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .answer-item:last-child {
+        border-bottom: none;
+    }
+    
+    .answer-label {
+        font-weight: 500;
+        color: var(--dark-color);
+    }
+    
+    .answer-value {
+        font-weight: 600;
+    }
+    
+    .answer-value.correct {
+        color: var(--success-color);
+    }
+    
+    .answer-value.incorrect {
+        color: var(--danger-color);
+    }
+    
+    .action-buttons {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid #E9ECEF;
+    }
+    
+    @media (max-width: 768px) {
+        .answer-comparison {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .word-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .word-text {
+            font-size: 1.5rem;
+        }
+    }
+  </style>
+{% endblock head %}
 {% block content %}
-  <h1>퀴즈 결과</h1>
-  <ul>
-    {% for quiz_no, data in results.items %}
-      <li>
-        <h3>문제 {{ quiz_no }}: {{ data.1 }}</h3>
-        <p>
-          정답 여부:
-          {% if data.0 %}
-            정답 O
-          {% else %}
-            오답 X
-          {% endif %}
-        </p>
-        <p>정답 (병음, 성조, 뜻): {{ data.2.0 }}, {{ data.2.1 }}, {{ data.2.2 }}{{ data.4 }}</p>
-        <p>입력값 (병음, 성조, 뜻): {{ data.3.0 }}, {{ data.3.1 }}, {{ data.3.2 }}{{ data.4 }}</p>
-      </li>
-    {% endfor %}
-  </ul>
-{% endblock %}
+  <div class="result-container">
+    <!-- 결과 헤더 -->
+    <div class="result-header">
+      <h1 class="mb-3">
+        <i class="fas fa-chart-bar me-3"></i>
+        퀴즈 결과
+      </h1>
+      <p class="lead">퀴즈를 완료하셨습니다!</p>
+    </div>
+    {% if results %}
+      <!-- 결과 요약 -->
+      <div class="result-summary">
+        <div class="summary-card">
+          <div class="summary-number">{{ total_questions }}</div>
+          <div class="summary-label">총 문제 수</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-number correct">{{ correct_count }}</div>
+          <div class="summary-label">정답 수</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-number incorrect">{{ wrong_count }}</div>
+          <div class="summary-label">오답 수</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-number">{{ accuracy_rate }}%</div>
+          <div class="summary-label">정답률</div>
+        </div>
+      </div>
+      <!-- 개별 결과 -->
+      {% for quiz_no, data in results.items %}
+        <div class="result-item {% if data.0 %}correct{% else %}incorrect{% endif %}">
+          <div class="word-header">
+            <div class="word-text">{{ data.1 }}</div>
+            <span class="result-badge {% if data.0 %}correct{% else %}incorrect{% endif %}">
+              {% if data.0 %}
+                <i class="fas fa-check me-1"></i>정답
+              {% else %}
+                <i class="fas fa-times me-1"></i>오답
+              {% endif %}
+            </span>
+          </div>
+          <div class="answer-comparison">
+            <div class="answer-section">
+              <h6>
+                <i class="fas fa-check-circle text-success me-2"></i>정답
+              </h6>
+              <div class="answer-item">
+                <span class="answer-label">병음:</span>
+                <span class="answer-value correct">{{ data.2.0 }}</span>
+              </div>
+              <div class="answer-item">
+                <span class="answer-label">성조:</span>
+                <span class="answer-value correct">{{ data.2.1 }}</span>
+              </div>
+              <div class="answer-item">
+                <span class="answer-label">의미:</span>
+                <span class="answer-value correct">{{ data.2.2 }}{{ data.4 }}</span>
+              </div>
+            </div>
+            <div class="answer-section">
+              <h6>
+                <i class="fas fa-user text-primary me-2"></i>내 답안
+              </h6>
+              <div class="answer-item">
+                <span class="answer-label">병음:</span>
+                <span class="answer-value {% if data.3.0 == data.2.0 %}correct{% else %}incorrect{% endif %}">
+                  {{ data.3.0|default:"입력하지 않음" }}
+                </span>
+              </div>
+              <div class="answer-item">
+                <span class="answer-label">성조:</span>
+                <span class="answer-value {% if data.3.1 == data.2.1 %}correct{% else %}incorrect{% endif %}">
+                  {{ data.3.1|default:"입력하지 않음" }}
+                </span>
+              </div>
+              <div class="answer-item">
+                <span class="answer-label">의미:</span>
+                <span class="answer-value {% if data.3.2 == data.2.2 %}correct{% else %}incorrect{% endif %}">
+                  {{ data.3.2|default:"입력하지 않음" }}{{ data.4 }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+      <!-- 액션 버튼들 -->
+      <div class="action-buttons">
+        <a href="{% url 'words:index' %}" class="btn btn-primary-custom me-3">
+          <i class="fas fa-home me-2"></i>홈으로
+        </a>
+        <a href="{% url 'words:quiz' %}?num_quiz=5"
+           class="btn btn-success-custom me-3">
+          <i class="fas fa-redo me-2"></i>다시 퀴즈
+        </a>
+        <a href="{% url 'words:add' %}" class="btn btn-secondary btn-custom">
+          <i class="fas fa-plus me-2"></i>단어 추가
+        </a>
+      </div>
+    {% else %}
+      <div class="text-center">
+        <div class="alert alert-info alert-custom">
+          <i class="fas fa-info-circle me-2"></i>
+          결과가 없습니다. 퀴즈를 먼저 풀어보세요!
+        </div>
+        <a href="{% url 'words:quiz' %}?num_quiz=5"
+           class="btn btn-primary-custom">
+          <i class="fas fa-play me-2"></i>퀴즈 시작하기
+        </a>
+      </div>
+    {% endif %}
+  </div>
+{% endblock content %}
