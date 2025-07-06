@@ -1,16 +1,365 @@
 {% extends "base.html" %}
+{% block title %}
+  단어 추가 - 중국어 단어장
+{% endblock title %}
+{% block head %}
+  <style>
+    .add-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        transition: var(--transition);
+    }
+    
+    .form-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .form-title {
+        color: var(--dark-color);
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-group-custom {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group-custom label {
+        font-weight: 500;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-group-custom input,
+    .form-group-custom textarea,
+    .form-group-custom select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #E9ECEF;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    
+    .form-group-custom input:focus,
+    .form-group-custom textarea:focus,
+    .form-group-custom select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, var(--success-color), #6BCB1A);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: var(--border-radius);
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: var(--transition);
+        box-shadow: var(--box-shadow);
+        width: 100%;
+    }
+    
+    .btn-submit:hover {
+        background: linear-gradient(135deg, #6BCB1A, var(--success-color));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(126, 211, 33, 0.3);
+        color: white;
+    }
+    
+    .help-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+    
+    .btn-custom {
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, var(--success-color), #6BCB1A);
+        color: white;
+        border: none;
+    }
+    
+    .btn-success:hover {
+        background: linear-gradient(135deg, #6BCB1A, var(--success-color));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(126, 211, 33, 0.3);
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+        color: white;
+        border: none;
+    }
+    
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, #5a6268, #6c757d);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(108, 117, 125, 0.3);
+        color: white;
+    }
+    
+    .readonly-input {
+        background-color: #f8f9fa !important;
+        color: #6c757d !important;
+        cursor: not-allowed;
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* 성조 드롭다운 화살표 숨기기 */
+    select.form-select-sm {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background: none;
+        background-color: #fff;
+        border: 1.5px solid #E9ECEF;
+        box-shadow: none;
+        padding: 0 0.2em;
+        height: 1.1em;
+        min-height: 0;
+        line-height: 1;
+        font-size: 1.05rem;
+        box-sizing: border-box;
+        border-radius: 0;
+        vertical-align: middle;
+    }
+    select.form-select-sm option {
+        font-size: 1.05rem;
+    }
+    select.form-select-sm:focus {
+        border-color: #4A90E2;
+        outline: none;
+        box-shadow: 0 0 0 0.15rem rgba(74, 144, 226, 0.13);
+    }
+    
+    .custom-select {
+        height: 1.5em !important;
+        padding: 0.5em 0 0 0 !important;
+        line-height: 0.8 !important;
+        font-size: 4rem;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: white;
+        border: 1px solid #ccc;
+    }
+  </style>
+{% endblock head %}
 {% block content %}
-  <h1>단어 추가</h1>
-  <form action="{% url "words:add" %}" method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">제출</button>
-  </form>
-  {% if messages %}
-    <ul class="messages">
-      {% for message in messages %}
-        <li {% if message.tags %}class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+  <div class="add-container">
+    <!-- 폼 카드 -->
+    <div class="form-card">
+      <form action="{% url 'words:add' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="{{ form_type }}">
+        {% if form_type == 'Word' %}
+          <h3 class="form-title">
+            <i class="fas fa-plus text-success"></i>
+            새 단어 등록
+          </h3>
+          <p class="text-muted mb-4">새로운 중국어 단어를 데이터베이스에 등록합니다.</p>
+          {% if added_word %}
+            <div class="form-group-custom">
+              <label>단어</label>
+              <input type="text"
+                     value="{{ added_word }}"
+                     class="form-control-custom readonly-input"
+                     readonly>
+              <div class="help-text">등록할 단어입니다.</div>
+            </div>
+          {% endif %}
+          <!-- 병음/성조 동적 입력 UI -->
+          <div id="dynamic-pinyin-tone"></div>
+          <input type="hidden" name="pinyin" id="hidden-pinyin">
+          <input type="hidden" name="tone" id="hidden-tone">
+          <div class="form-group-custom">
+            <label for="{{ form.meaning.id_for_label }}">의미</label>
+            {{ form.meaning }}
+          </div>
+          <button type="submit" class="btn-submit">
+            <i class="fas fa-save me-2"></i>단어 등록
+          </button>
+        {% else %}
+          <h3 class="form-title">
+            <i class="fas fa-search text-primary"></i>
+            학습 목록에 단어 추가
+          </h3>
+          <div class="form-group-custom">
+            <label for="{{ form.notes.id_for_label }}">
+              <i class="fas fa-sticky-note me-1"></i>메모
+            </label>
+            {{ form.word }}
+            <div class="help-text">학습하고 싶은 중국어 단어를 입력하세요.</div>
+          </div>
+          <button type="submit" class="btn-submit">
+            <i class="fas fa-plus me-2"></i>학습 목록에 추가
+          </button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+  <script>
+// 폼 필드에 Bootstrap 클래스 추가
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.classList.add('form-control-custom');
+    });
+});
+
+// 병음/성조 동적 입력 UI 생성 (드롭다운)
+document.addEventListener('DOMContentLoaded', function() {
+    // 단어 입력란 찾기
+    let wordInput = document.querySelector('input[readonly]') || document.querySelector('input[name="word"]');
+    if (!wordInput) return;
+
+    // 동적 UI를 표시할 div
+    const dynDiv = document.getElementById('dynamic-pinyin-tone');
+    const hiddenPinyin = document.getElementById('hidden-pinyin');
+    const hiddenTone = document.getElementById('hidden-tone');
+
+    // 성조 드롭다운 옵션
+    const toneSymbols = ['ˉ','ˊ','ˇ','ˋ','•'];
+    const toneNums = ['1','2','3','4','5'];
+
+    function renderInputs(word) {
+        dynDiv.innerHTML = '';
+        if (!word || word.length === 0) return;
+
+        // 성조-병음 세트 행 (왼쪽 정렬, 각 열이 세로로 쌍)
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.gap = '0.7rem';
+        row.style.marginBottom = '0.5rem';
+        row.style.alignItems = 'flex-start';
+        row.style.justifyContent = 'flex-start';
+        row.style.marginLeft = '0';
+
+        // 첫 칸: 라벨 세트 (아이콘+텍스트)
+        const labelCol = document.createElement('div');
+        labelCol.style.display = 'flex';
+        labelCol.style.flexDirection = 'column';
+        labelCol.style.alignItems = 'flex-start';
+        labelCol.style.justifyContent = 'center';
+        labelCol.style.gap = '1.5rem';
+        labelCol.style.width = '40px';
+        labelCol.style.alignSelf = 'center';
+        labelCol.innerHTML = `
+          <label style="display:flex;align-items:center;font-weight:600;font-size:0.98rem;margin-bottom:0.1rem;">
+            성조
+          </label>
+          <label style="display:flex;align-items:center;font-weight:600;font-size:0.98rem;">
+            병음
+          </label>
+        `;
+        row.appendChild(labelCol);
+
+        // 각 글자별 성조/병음 세트
+        for (let i = 0; i < word.length; i++) {
+            const col = document.createElement('div');
+            col.style.display = 'flex';
+            col.style.flexDirection = 'column';
+            col.style.alignItems = 'center';
+            col.style.gap = '0.5rem';
+
+            // 성조 드롭다운
+            const select = document.createElement('select');
+            select.className = 'form-select-sm custom-select';
+            select.style.width = '64px';
+            select.style.textAlign = 'center';
+            select.style.fontSize = '1.5rem';
+            select.style.height = '2em';
+            select.style.padding = '0.5em 0 0 0';
+            select.style.lineHeight = '0.8';
+            for (let j = 0; j < 5; j++) {
+                const opt = document.createElement('option');
+                opt.value = toneNums[j];
+                opt.textContent = toneSymbols[j];
+                select.appendChild(opt);
+            }
+            select.dataset.idx = i;
+            select.addEventListener('change', updateHidden);
+            col.appendChild(select);
+
+            // 병음 input
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.maxLength = 8;
+            inp.className = 'form-control-custom pinyin-input';
+            inp.style.width = '97px';
+            inp.style.textAlign = 'center';
+            inp.placeholder = `병음${i+1}`;
+            inp.dataset.idx = i;
+            inp.addEventListener('input', updateHidden);
+            col.appendChild(inp);
+
+            row.appendChild(col);
+        }
+        dynDiv.appendChild(row);
+
+        updateHidden();
+    }
+
+    function updateHidden() {
+        // 병음
+        const pinyinInputs = dynDiv.querySelectorAll('input');
+        const pinyinVal = Array.from(pinyinInputs).map(inp => inp.value.trim()).join(' ');
+        hiddenPinyin.value = pinyinVal;
+        // 성조
+        const toneSelects = dynDiv.querySelectorAll('select');
+        const toneVal = Array.from(toneSelects).map(sel => sel.value).join(' ');
+        hiddenTone.value = toneVal;
+    }
+
+    // 단어 입력이 바뀔 때마다 UI 갱신
+    if (!wordInput.readOnly) {
+        wordInput.addEventListener('input', function() {
+            renderInputs(wordInput.value.trim());
+        });
+        // 최초 렌더링
+        renderInputs(wordInput.value.trim());
+    } else {
+        // 이미 등록된 단어라면
+        renderInputs(wordInput.value.trim());
+    }
+});
+  </script>
 {% endblock content %}

@@ -1,17 +1,215 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-  </head>
-  <body>
-    <form action="{% url "accounts:signup" %}" method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <input type="submit" value="제출">
-    </form>
-    <p>Already have account?</p>
-    <a href="{% url "accounts:login" %}">login</a>
-  </body>
-</html>
+{% extends "base.html" %}
+{% block title %}
+  회원가입 - 중국어 단어장
+{% endblock title %}
+{% block head %}
+  <style>
+    .auth-container {
+        max-width: 450px;
+        margin: 0 auto;
+    }
+    
+    .auth-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 2rem;
+        transition: var(--transition);
+    }
+    
+    .auth-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .form-group-custom {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group-custom label {
+        font-weight: 500;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-group-custom input {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #E9ECEF;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    
+    .form-group-custom input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+    }
+    
+    .btn-signup {
+        background: linear-gradient(135deg, var(--success-color), #6BCB1A);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: var(--border-radius);
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: var(--transition);
+        box-shadow: var(--box-shadow);
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-signup:hover {
+        background: linear-gradient(135deg, #6BCB1A, var(--success-color));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(126, 211, 33, 0.3);
+        color: white;
+    }
+    
+    .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #E9ECEF;
+    }
+    
+    .auth-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+    
+    .auth-link:hover {
+        color: #357ABD;
+        text-decoration: underline;
+    }
+    
+    .welcome-text {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .password-requirements {
+        background: #f8f9fa;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-top: 1rem;
+        border-left: 4px solid var(--primary-color);
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .password-requirements h6 {
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .requirement-item {
+        margin-bottom: 0.25rem;
+    }
+    
+    .requirement-item:last-child {
+        margin-bottom: 0;
+    }
+  </style>
+{% endblock head %}
+{% block content %}
+  <div class="auth-container">
+    <!-- 헤더 -->
+    <div class="auth-header">
+      <h1 class="mb-3">
+        <i class="fas fa-user-plus me-3"></i>
+        회원가입
+      </h1>
+      <p class="welcome-text">중국어 단어장의 새로운 멤버가 되어보세요!</p>
+    </div>
+    <!-- 회원가입 폼 -->
+    <div class="auth-card">
+      <form action="{% url 'accounts:signup' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group-custom">
+          <label for="{{ form.username.id_for_label }}">
+            <i class="fas fa-user me-1"></i>사용자명 *
+          </label>
+          {{ form.username }}
+          {% if form.username.help_text %}<small class="text-muted">{{ form.username.help_text }}</small>{% endif %}
+        </div>
+
+        <div class="form-group-custom">
+          <label for="{{ form.password1.id_for_label }}">
+            <i class="fas fa-lock me-1"></i>비밀번호 *
+          </label>
+          {{ form.password1 }}
+          {% if form.password1.help_text %}
+            <div class="password-requirements">
+              <h6>
+                <i class="fas fa-info-circle me-1"></i>비밀번호 요구사항:
+              </h6>
+              <div class="requirement-item">• 8자 이상이어야 합니다</div>
+              <div class="requirement-item">• 숫자와 문자를 포함해야 합니다</div>
+              <div class="requirement-item">• 너무 일반적이거나 개인정보를 포함하면 안 됩니다</div>
+            </div>
+          {% endif %}
+        </div>
+        <div class="form-group-custom">
+          <label for="{{ form.password2.id_for_label }}">
+            <i class="fas fa-lock me-1"></i>비밀번호 확인 *
+          </label>
+          {{ form.password2 }}
+          {% if form.password2.help_text %}<small class="text-muted">{{ form.password2.help_text }}</small>{% endif %}
+        </div>
+        <button type="submit" class="btn-signup">
+          <i class="fas fa-user-plus me-2"></i>회원가입
+        </button>
+      </form>
+      <!-- 로그인 링크 -->
+      <div class="auth-footer">
+        <p class="mb-2">이미 계정이 있으신가요?</p>
+        <a href="{% url 'accounts:login' %}" class="auth-link">
+          <i class="fas fa-sign-in-alt me-1"></i>로그인
+        </a>
+      </div>
+    </div>
+  </div>
+  <script>
+// 폼 필드에 Bootstrap 클래스 추가
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.classList.add('form-control-custom');
+    });
+    
+    // 비밀번호 확인 실시간 검증
+    const password1 = document.getElementById('{{ form.password1.id_for_label }}');
+    const password2 = document.getElementById('{{ form.password2.id_for_label }}');
+    
+    function validatePassword() {
+        if (password1.value && password2.value) {
+            if (password1.value === password2.value) {
+                password2.style.borderColor = var(--success-color);
+            } else {
+                password2.style.borderColor = var(--danger-color);
+            }
+        }
+    }
+    
+    password1.addEventListener('input', validatePassword);
+    password2.addEventListener('input', validatePassword);
+});
+  </script>
+{% endblock content %}
