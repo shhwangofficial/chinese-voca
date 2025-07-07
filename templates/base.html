@@ -29,9 +29,9 @@
             --danger-color: #D0021B;
             --dark-color: #2C3E50;
             --light-color: #F8F9FA;
-            --border-radius: 12px;
-            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
+            --border-radius: 14px;
+            --box-shadow: 0 6px 24px rgba(74, 144, 226, 0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+            --transition: all 0.2s ease;
         }
 
         * {
@@ -157,29 +157,79 @@
             box-shadow: 0 6px 12px rgba(126, 211, 33, 0.3);
         }
 
-        .card-custom {
-            background: rgba(255, 255, 255, 0.9);
+        .card-modern, .form-card, .quiz-modern-card, .card-custom {
+            border: none;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
-            border: none;
-            transition: var(--transition);
+            background: white;
+            padding: 2rem 1.5rem 1.5rem 1.5rem;
+            margin-bottom: 2rem;
+            transition: box-shadow 0.2s;
+        }
+        .card-modern:hover, .form-card:hover, .quiz-modern-card:hover, .card-custom:hover {
+            box-shadow: 0 12px 32px rgba(74, 144, 226, 0.18), 0 2px 8px rgba(0,0,0,0.06);
         }
 
-        .card-custom:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        .form-group-custom, .input-group-custom {
+            margin-bottom: 1.5rem;
         }
-
-        .form-control-custom {
-            border-radius: var(--border-radius);
-            border: 2px solid #E9ECEF;
+        .form-group-custom label, .input-group-custom label {
+            font-weight: 500;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .form-group-custom input,
+        .form-group-custom textarea,
+        .form-group-custom select,
+        .input-group-custom input,
+        .input-group-custom textarea,
+        .input-group-custom select {
+            width: 100%;
             padding: 0.75rem 1rem;
+            border: 2px solid #E9ECEF;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
             transition: var(--transition);
         }
-
-        .form-control-custom:focus {
+        .form-group-custom input:focus,
+        .form-group-custom textarea:focus,
+        .form-group-custom select:focus,
+        .input-group-custom input:focus,
+        .input-group-custom textarea:focus,
+        .input-group-custom select:focus {
+            outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.15);
+        }
+        .readonly-input {
+            background-color: #f8f9fa !important;
+            color: #6c757d !important;
+            cursor: not-allowed;
+        }
+
+        .btn-modern, .btn-submit, .btn-modern-add, .quiz-btn-modern {
+            background: linear-gradient(135deg, var(--primary-color), var(--success-color));
+            color: #fff;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 0.9rem 1.5rem;
+            box-shadow: 0 2px 8px rgba(74,144,226,0.10);
+            transition: background 0.2s, box-shadow 0.2s;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            white-space: normal;
+            box-sizing: border-box;
+        }
+        .btn-modern:hover, .btn-submit:hover, .btn-modern-add:hover, .quiz-btn-modern:hover {
+            background: linear-gradient(135deg, var(--success-color), var(--primary-color));
+            box-shadow: 0 4px 16px rgba(74,144,226,0.18);
+            color: #fff;
         }
 
         .alert-custom {
@@ -189,31 +239,27 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             margin-bottom: 1rem;
         }
-        
         .alert-warning {
             background: linear-gradient(135deg, #fff3cd, #ffeaa7);
             color: #856404;
             border-left: 4px solid #ffc107;
         }
-        
         .alert-success {
             background: linear-gradient(135deg, #d4edda, #c3e6cb);
             color: #155724;
             border-left: 4px solid #28a745;
         }
-        
         .alert-danger {
             background: linear-gradient(135deg, #f8d7da, #f5c6cb);
             color: #721c24;
             border-left: 4px solid #dc3545;
         }
-        
         .alert-info {
             background: linear-gradient(135deg, #d1ecf1, #bee5eb);
             color: #0c5460;
             border-left: 4px solid #17a2b8;
         }
-        
+
         .messages-container {
             animation: slideInDown 0.5s ease-out;
         }
@@ -288,6 +334,9 @@
             }
             .navbar {
                 padding-right: 1.5rem;
+            }
+            .card-modern, .form-card, .quiz-modern-card, .card-custom {
+                padding: 1.2rem 0.7rem;
             }
         }
         @media (max-width: 480px) {

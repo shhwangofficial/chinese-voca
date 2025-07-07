@@ -187,6 +187,13 @@
   <div class="add-container">
     <!-- 폼 카드 -->
     <div class="form-card">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-custom mb-3" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
       <form action="{% url 'words:add' %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="form_type" value="{{ form_type }}">
@@ -207,9 +214,13 @@
             </div>
           {% endif %}
           <!-- 병음/성조 동적 입력 UI -->
-          <div id="dynamic-pinyin-tone"></div>
-          <input type="hidden" name="pinyin" id="hidden-pinyin">
-          <input type="hidden" name="tone" id="hidden-tone">
+          <div class="input-row">
+            <div class="input-group-custom input-group-fullwidth">
+              <div id="dynamic-pinyin-tone"></div>
+              <input type="hidden" name="pinyin" id="hidden-pinyin">
+              <input type="hidden" name="tone" id="hidden-tone">
+            </div>
+          </div>
           <div class="form-group-custom">
             <label for="{{ form.meaning.id_for_label }}">의미</label>
             {{ form.meaning }}
@@ -272,6 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
         row.style.alignItems = 'flex-start';
         row.style.justifyContent = 'flex-start';
         row.style.marginLeft = '0';
+        row.style.width = '100%';
 
         // 첫 칸: 라벨 세트 (아이콘+텍스트)
         const labelCol = document.createElement('div');
@@ -283,12 +295,8 @@ document.addEventListener('DOMContentLoaded', function() {
         labelCol.style.width = '40px';
         labelCol.style.alignSelf = 'center';
         labelCol.innerHTML = `
-          <label style="display:flex;align-items:center;font-weight:600;font-size:0.98rem;margin-bottom:0.1rem;">
-            성조
-          </label>
-          <label style="display:flex;align-items:center;font-weight:600;font-size:0.98rem;">
-            병음
-          </label>
+          <label style="display:flex;align-items:center;font-weight:600;font-size:0.98rem;margin-bottom:0.1rem;">성조</label>
+          <label style="display:flex;align-items:center;font-weight:600;font-size:0.98rem;">병음</label>
         `;
         row.appendChild(labelCol);
 
