@@ -163,6 +163,43 @@
     .input-group-fullwidth {
       width: 100%;
     }
+    /* add.html의 성조 드롭다운 스타일 추가 */
+    select.form-select-sm {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background: none;
+        background-color: #fff;
+        border: 1.5px solid #E9ECEF;
+        box-shadow: none;
+        padding: 0 0.2em;
+        height: 1.1em;
+        min-height: 0;
+        line-height: 1;
+        font-size: 1.05rem;
+        box-sizing: border-box;
+        border-radius: 0;
+        vertical-align: middle;
+    }
+    select.form-select-sm option {
+        font-size: 1.05rem;
+    }
+    select.form-select-sm:focus {
+        border-color: #4A90E2;
+        outline: none;
+        box-shadow: 0 0 0 0.15rem rgba(74, 144, 226, 0.13);
+    }
+    .custom-select {
+        height: 1.5em !important;
+        padding: 0.5em 0 0 0 !important;
+        line-height: 0.8 !important;
+        font-size: 4rem;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: white;
+        border: 1px solid #ccc;
+    }
   </style>
 {% endblock head %}
 {% block content %}

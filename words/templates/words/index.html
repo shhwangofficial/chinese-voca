@@ -265,7 +265,7 @@
             </div>
             <h3>오늘의 퀴즈</h3>
             <label for="num_quiz">퀴즈 문제 수</label>
-            <form action="{% url 'words:quiz' %}" method="get" class="quiz-header-form">
+            <form action="{% url 'words:quiz' %}" method="get" class="quiz-header-form" onsubmit="return validateQuizForm()">
               <input type="number"
                      class="form-control quiz-input-modern"
                      name="num_quiz"
@@ -276,9 +276,25 @@
                      placeholder="1~20"
                      required
                      onchange="validateQuizNumber(this)">
-              <button type="submit" class="btn quiz-btn-modern" onclick="return validateQuizForm()">
-                <i class="fas fa-play me-2"></i>퀴즈 시작
-              </button>
+              {% if total_learning_words == 0 %}
+                <button type="button" class="btn quiz-btn-modern" disabled>
+                  <i class="fas fa-play me-2"></i>퀴즈 시작
+                </button>
+                <div class="alert alert-info alert-custom mt-2">
+                  학습 중인 단어가 없습니다. 먼저 단어를 추가해보세요.
+                </div>
+              {% elif today_review_words == 0 %}
+                <button type="button" class="btn quiz-btn-modern" disabled>
+                  <i class="fas fa-play me-2"></i>퀴즈 시작
+                </button>
+                <div class="alert alert-info alert-custom mt-2">
+                  오늘 복습할 단어가 없습니다. 내일 다시 시도해보세요.
+                </div>
+              {% else %}
+                <button type="submit" class="btn quiz-btn-modern">
+                  <i class="fas fa-play me-2"></i>퀴즈 시작
+                </button>
+              {% endif %}
             </form>
           </div>
         </div>
