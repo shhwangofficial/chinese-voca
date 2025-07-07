@@ -104,14 +104,24 @@ def index(request):
 
 @require_http_methods(["GET"])
 def quiz(request):
-    try:
-        num_quiz = int(request.GET.get("num_quiz", 0))
-    except (TypeError, ValueError):
-        num_quiz = 0
-    if num_quiz <= 0:
-        return render(request, "base.html")
-    
     user = request.user
+    
+    # 학습 중인 단어가 0개인지 확인
+    total_learning_words = user.learning.count()
+    if total_learning_words == 0:
+        messages.warning(request, "학습 중인 단어가 없습니다. 먼저 단어를 추가해주세요.")
+        return redirect("words:index")
+    
+    # 퀴즈 문제 수 처리 - 기본값 5로 설정
+    try:
+        num_quiz = int(request.GET.get("num_quiz", 5))
+    except (TypeError, ValueError):
+        num_quiz = 5
+    
+    # 문제 수가 0 이하이거나 20을 초과하면 기본값 5로 설정
+    if num_quiz <= 0 or num_quiz > 20:
+        num_quiz = 5
+    
     cache_key = f'quiz_words_{user.id}_{num_quiz}'
     words = cache.get(cache_key)
     
@@ -120,6 +130,11 @@ def quiz(request):
             learningword__to_be_revised__lt=timezone.now()
         ).order_by("learningword__to_be_revised")[:num_quiz]
         cache.set(cache_key, words, CACHE_TTL)
+    
+    # 복습할 단어가 없으면 알림
+    if not words:
+        messages.info(request, "오늘 복습할 단어가 없습니다. 내일 다시 시도해보세요.")
+        return redirect("words:index")
     
     context = {"words": words}
     response = render(request, "words/quiz.html", context)

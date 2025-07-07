@@ -61,7 +61,9 @@ def logout(request):
     # 모든 캐시 완전 정리 (더 확실한 방법)
     cache.clear()
     
-    # 성공 메시지 추가
+    # Django의 기본 메시지를 제거하고 우리만의 메시지 추가
+    from django.contrib.messages.storage.fallback import FallbackStorage
+    setattr(request, '_messages', FallbackStorage(request))
     messages.success(request, "안전하게 로그아웃되었습니다.")
     
     return redirect("accounts:login")
