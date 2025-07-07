@@ -345,22 +345,6 @@
     <!-- Main Content -->
     <div class="layout-max">
       <div class="main-container">
-        <!-- 메시지 표시 -->
-        {% if messages %}
-          <div class="messages-container mb-4">
-            {% for message in messages %}
-              <div class="alert alert-{{ message.tags }} alert-custom alert-dismissible fade show"
-                   role="alert">
-                <i class="fas fa-{% if message.tags == 'success' %}check-circle text-success{% elif message.tags == 'error' %}exclamation-circle text-danger{% elif message.tags == 'warning' %}exclamation-triangle text-warning{% elif message.tags == 'info' %}info-circle text-info{% endif %} me-2"></i>
-                {{ message }}
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert"
-                        aria-label="Close"></button>
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
         {% block content %}
         {% endblock content %}
       </div>

@@ -85,6 +85,25 @@
         display: block;
     }
     
+    .input-group-custom input,
+    .input-group-custom textarea,
+    .input-group-custom select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #E9ECEF;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    
+    .input-group-custom input:focus,
+    .input-group-custom textarea:focus,
+    .input-group-custom select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+    }
+    
     .input-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -200,11 +219,13 @@
             </div>
           </div>
           <div class="input-group-custom">
-            <label for="meaning_{{ word.pk }}">의미</label>
+            <label for="meaning_{{ word.pk }}">
+              <i class="fas fa-language me-1"></i>의미
+            </label>
             <input type="text"
                    name="meaning_{{ word.pk }}"
                    id="meaning_{{ word.pk }}"
-                   placeholder="예: 안녕하세요"
+                   placeholder="단어의 의미를 입력하세요"
                    required>
           </div>
         </div>
@@ -219,11 +240,16 @@
     </form>
   </div>
   <script>
-// 진행률 표시
+// 진행률 표시 및 폼 스타일링
 document.addEventListener('DOMContentLoaded', function() {
     const progressBar = document.getElementById('progressBar');
     const inputs = document.querySelectorAll('input[type="text"]');
     const totalInputs = inputs.length;
+    
+    // 모든 input에 form-control-custom 클래스 추가
+    inputs.forEach(input => {
+        input.classList.add('form-control-custom');
+    });
     
     function updateProgress() {
         const filledInputs = Array.from(inputs).filter(input => input.value.trim() !== '').length;

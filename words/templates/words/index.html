@@ -201,6 +201,29 @@
         }
     }
   </style>
+  <script>
+    function validateQuizNumber(input) {
+        let value = parseInt(input.value);
+        if (isNaN(value) || value < 1) {
+            input.value = 5;
+        } else if (value > 20) {
+            input.value = 20;
+        }
+    }
+    
+    function validateQuizForm() {
+        const input = document.getElementById('num_quiz');
+        let value = parseInt(input.value);
+        
+        if (isNaN(value) || value < 1 || value > 20) {
+            alert('퀴즈 문제 수는 1~20 사이의 숫자여야 합니다.');
+            input.value = 5;
+            return false;
+        }
+        
+        return true;
+    }
+  </script>
 {% endblock head %}
 {% block content %}
   <div class="row">
@@ -251,8 +274,9 @@
                      max="20"
                      value="5"
                      placeholder="1~20"
-                     required>
-              <button type="submit" class="btn quiz-btn-modern">
+                     required
+                     onchange="validateQuizNumber(this)">
+              <button type="submit" class="btn quiz-btn-modern" onclick="return validateQuizForm()">
                 <i class="fas fa-play me-2"></i>퀴즈 시작
               </button>
             </form>
