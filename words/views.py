@@ -106,6 +106,20 @@ def index(request):
 def quiz(request):
     user = request.user
     
+    # 오답만 다시 출제: retry_pks가 있으면 해당 단어만 출제
+    retry_pks = request.GET.getlist("retry_pks")
+    if retry_pks:
+        words = Word.objects.filter(pk__in=retry_pks)
+        if not words:
+            messages.info(request, "틀린 문제가 없습니다. 모두 정답입니다!")
+            return redirect("words:index")
+        context = {"words": words}
+        response = render(request, "words/quiz.html", context)
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
+
     # 학습 중인 단어가 0개인지 확인
     total_learning_words = user.learning.count()
     if total_learning_words == 0:
@@ -122,14 +136,10 @@ def quiz(request):
     if num_quiz <= 0 or num_quiz > 20:
         num_quiz = 5
     
-    cache_key = f'quiz_words_{user.id}_{num_quiz}'
-    words = cache.get(cache_key)
-    
-    if words is None:
-        words = user.learning.filter(
-            learningword__to_be_revised__lt=timezone.now()
-        ).order_by("learningword__to_be_revised")[:num_quiz]
-        cache.set(cache_key, words, CACHE_TTL)
+    # 항상 fresh하게 DB에서 문제를 뽑아옴 (캐시 사용 안함)
+    words = user.learning.filter(
+        learningword__to_be_revised__lt=timezone.now()
+    ).order_by("learningword__to_be_revised")[:num_quiz]
     
     # 복습할 단어가 없으면 알림
     if not words:
@@ -191,10 +201,10 @@ def grade(request):
                 learning.save()
 
                 # Clear related caches
-                # Note: LocMemCache doesn't support delete_pattern, so we clear specific keys
                 cache.delete(cache_key)
 
-                results[quiz_no] = [
+                # results의 key를 Word의 pk(정수)로 저장
+                results[str(ans_word.pk)] = [
                     is_correct,
                     ans_word.word,
                     [ans_word.pinyin, ans_word.tone, ans_word.meaning],
