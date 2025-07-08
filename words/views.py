@@ -18,10 +18,11 @@ def index(request):
     if request.user.is_authenticated:
         user = request.user
         
-        # 사용자별 캐시 키 생성
-        cache_key_stats = f'user_stats_{user.id}'
-        cache_key_recent = f'user_recent_words_{user.id}'
-        cache_key_today = f'user_today_words_{user.id}'
+        # 사용자별 캐시 키 생성 (날짜 포함)
+        today = timezone.now().date()
+        cache_key_stats = f'user_stats_{user.id}_{today}'
+        cache_key_recent = f'user_recent_words_{user.id}_{today}'
+        cache_key_today = f'user_today_words_{user.id}_{today}'
         
         # 캐시에서 데이터 가져오기
         cached_stats = cache.get(cache_key_stats)
@@ -48,7 +49,10 @@ def index(request):
             # 각 단어의 추가 일수 계산
             for learning_word in recent_words:
                 if learning_word.learning_since:
-                    days_diff = (timezone.now() - learning_word.learning_since).days
+                    # 날짜만 비교하기 위해 날짜 부분만 추출
+                    today = timezone.now().date()
+                    learning_date = learning_word.learning_since.date()
+                    days_diff = (today - learning_date).days
                     if days_diff == 0:
                         learning_word.days_since_added = "오늘"
                     elif days_diff == 1:
@@ -73,7 +77,10 @@ def index(request):
                 if learning_word.correct_count == 0 and learning_word.wrong_count == 0:
                     learning_word.days_since_revision = "첫 복습"
                 elif learning_word.last_time_revised:
-                    days_diff = (timezone.now() - learning_word.last_time_revised).days
+                    # 날짜만 비교하기 위해 날짜 부분만 추출
+                    today = timezone.now().date()
+                    revision_date = learning_word.last_time_revised.date()
+                    days_diff = (today - revision_date).days
                     if days_diff == 0:
                         learning_word.days_since_revision = "오늘"
                     elif days_diff == 1:
