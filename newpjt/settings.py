@@ -137,7 +137,7 @@ CACHES = {
 }
 
 # Cache timeout in seconds
-CACHE_TTL = 60 * 15  # 15 minutes
+CACHE_TTL = 60 * 5  # 5 minutes (개발 중에는 더 짧게)
 
 # Django 기본 메시지 한국어 설정
 LOGOUT_REDIRECT_URL = 'accounts:login'
