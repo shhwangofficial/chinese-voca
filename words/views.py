@@ -284,11 +284,10 @@ def add(request):
                             user=user, word=found_word, to_be_revised=to_be_revised
                         )
                         # 관련 캐시 삭제하여 메인 페이지에서 즉시 반영
-                        cache.delete(f'user_stats_{user.id}')
-                        cache.delete(f'user_today_words_{user.id}')
-                        cache.delete(f'user_recent_words_{user.id}')
+                        # 모든 날짜의 캐시를 삭제하여 즉시 반영되도록 함
+                        cache.clear()
                         messages.success(request, f"'{word}'를 학습 목록에 추가했습니다.")
-                    return redirect("words:add")
+                    return redirect("words:index")
                 else:
                     messages.error(request, f"'{word}'는 DB에 존재하지 않아서 직접 추가해야 합니다.")
                     request.session["added_word"] = word
@@ -321,12 +320,11 @@ def add(request):
                             user=user, word=word_obj, to_be_revised=to_be_revised
                         )
                         # 관련 캐시 삭제하여 메인 페이지에서 즉시 반영
-                        cache.delete(f'user_stats_{user.id}')
-                        cache.delete(f'user_today_words_{user.id}')
-                        cache.delete(f'user_recent_words_{user.id}')
+                        # 모든 날짜의 캐시를 삭제하여 즉시 반영되도록 함
+                        cache.clear()
                         messages.success(request, f"'{word}'가 데이터베이스에 추가되고 학습 목록에도 추가되었습니다.")
                     
-                    return redirect("words:add")
+                    return redirect("words:index")
                 else:
                     messages.error(request, "단어 정보를 찾을 수 없습니다.")
                     return redirect("words:add")
