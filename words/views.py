@@ -18,11 +18,10 @@ def index(request):
     if request.user.is_authenticated:
         user = request.user
         
-        # 사용자별 캐시 키 생성 (날짜 포함)
-        today = timezone.now().date()
-        cache_key_stats = f'user_stats_{user.id}_{today}'
-        cache_key_recent = f'user_recent_words_{user.id}_{today}'
-        cache_key_today = f'user_today_words_{user.id}_{today}'
+        # 사용자별 캐시 키 생성
+        cache_key_stats = f'user_stats_{user.id}'
+        cache_key_recent = f'user_recent_words_{user.id}'
+        cache_key_today = f'user_today_words_{user.id}'
         
         # 캐시에서 데이터 가져오기
         cached_stats = cache.get(cache_key_stats)
@@ -170,15 +169,10 @@ def grade(request):
         for key in request.POST:
             if key.startswith("quizno_"):
                 pk = key.split("_")[1]
-                cache_key = f'word_{pk}'
-                ans_word = cache.get(cache_key)
-                
-                if ans_word is None:
-                    try:
-                        ans_word = Word.objects.get(pk=pk)
-                        cache.set(cache_key, ans_word, CACHE_TTL)
-                    except Word.DoesNotExist:
-                        continue
+                try:
+                    ans_word = Word.objects.get(pk=pk)
+                except Word.DoesNotExist:
+                    continue
 
                 quiz_no = request.POST.get(f"quizno_{pk}", "").strip()
                 user_pinyin = request.POST.get(f"pinyin_{pk}", "").strip()
@@ -206,9 +200,6 @@ def grade(request):
                 )
                 learning.learning_term = new_learning_term
                 learning.save()
-
-                # Clear related caches
-                cache.delete(cache_key)
 
                 # results의 key를 Word의 pk(정수)로 저장
                 results[str(ans_word.pk)] = [
@@ -266,13 +257,7 @@ def add(request):
                 word = form.cleaned_data["word"]
                 # 입력값 정규화
                 word = unicodedata.normalize('NFC', word.strip())
-                cache_key = f'word_lookup_{word}'
-                found_word = cache.get(cache_key)
-                
-                if found_word is None:
-                    found_word = Word.objects.filter(word=word).first()
-                    if found_word:
-                        cache.set(cache_key, found_word, CACHE_TTL)
+                found_word = Word.objects.filter(word=word).first()
                 
                 if found_word:
                     if user.learning.filter(word=word).exists():
@@ -284,8 +269,12 @@ def add(request):
                             user=user, word=found_word, to_be_revised=to_be_revised
                         )
                         # 관련 캐시 삭제하여 메인 페이지에서 즉시 반영
-                        # 모든 날짜의 캐시를 삭제하여 즉시 반영되도록 함
-                        cache.clear()
+                        cache.delete(f'user_stats_{user.id}')
+                        cache.delete(f'user_recent_words_{user.id}')
+                        cache.delete(f'user_today_words_{user.id}')
+                        # 세션에서 added_word 정리
+                        if "added_word" in request.session:
+                            del request.session["added_word"]
                         messages.success(request, f"'{word}'를 학습 목록에 추가했습니다.")
                     return redirect("words:index")
                 else:
@@ -306,9 +295,6 @@ def add(request):
                     word_obj.word = word
                     word_obj.save()
                     
-                    # Clear related caches
-                    cache.delete(f'word_lookup_{word}')
-                    # Note: LocMemCache doesn't support delete_pattern, so we clear specific keys
                     
                     # 자동으로 학습 목록에 추가
                     if user.learning.filter(word=word).exists():
@@ -320,8 +306,12 @@ def add(request):
                             user=user, word=word_obj, to_be_revised=to_be_revised
                         )
                         # 관련 캐시 삭제하여 메인 페이지에서 즉시 반영
-                        # 모든 날짜의 캐시를 삭제하여 즉시 반영되도록 함
-                        cache.clear()
+                        cache.delete(f'user_stats_{user.id}')
+                        cache.delete(f'user_recent_words_{user.id}')
+                        cache.delete(f'user_today_words_{user.id}')
+                        # 세션에서 added_word 정리
+                        if "added_word" in request.session:
+                            del request.session["added_word"]
                         messages.success(request, f"'{word}'가 데이터베이스에 추가되고 학습 목록에도 추가되었습니다.")
                     
                     return redirect("words:index")
