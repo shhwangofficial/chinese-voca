@@ -143,9 +143,10 @@ def quiz(request):
         num_quiz = 5
     
     # 항상 fresh하게 DB에서 문제를 뽑아옴 (캐시 사용 안함)
+    # 랜덤 순서로 퀴즈 문제 출제
     words = user.learning.filter(
         learningword__to_be_revised__lt=timezone.now()
-    ).order_by("learningword__to_be_revised")[:num_quiz]
+    ).order_by("?")[:num_quiz]
     
     # 복습할 단어가 없으면 알림
     if not words:
