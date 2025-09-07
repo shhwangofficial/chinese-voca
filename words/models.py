@@ -28,8 +28,6 @@ class Word(models.Model):
     )
     created_at = models.DateTimeField(default=timezone.now, verbose_name='생성일', db_index=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='수정일')
-    last_reviewed = models.DateTimeField(null=True, blank=True, verbose_name='마지막 복습일', db_index=True)
-    review_count = models.IntegerField(default=0, verbose_name='복습 횟수')
 
     class Meta:
         verbose_name = '단어'
