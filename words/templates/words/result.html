@@ -112,6 +112,18 @@
         color: var(--danger-color);
     }
     
+    .word-class-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
     .answer-comparison {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -236,7 +248,10 @@
       {% for quiz_no, data in results.items %}
         <div class="result-item {% if data.0 %}correct{% else %}incorrect{% endif %}">
           <div class="word-header">
-            <div class="word-text">{{ data.1 }}</div>
+            <div>
+              <div class="word-text">{{ data.1 }}</div>
+              <div class="word-class-badge">{{ data.5 }}</div>
+            </div>
             <span class="result-badge {% if data.0 %}correct{% else %}incorrect{% endif %}">
               {% if data.0 %}
                 <i class="fas fa-check me-1"></i>정답

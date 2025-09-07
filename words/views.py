@@ -209,6 +209,7 @@ def grade(request):
                     [ans_word.pinyin, ans_word.tone, ans_word.meaning],
                     [user_pinyin, user_tone, user_meaning],
                     "",
+                    ans_word.get_word_class_display(),
                 ]
         # 캐시 삭제: index의 정답/오답/통계가 바로 반영되도록
         cache.delete(f'user_stats_{user.id}')
