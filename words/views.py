@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.http import HttpResponse
-from datetime import timedelta
+from datetime import timedelta, datetime
 from .models import Word
 from accounts.models import LearningWord
 from .forms import WordForm, LearnWordForm
@@ -196,9 +196,9 @@ def grade(request):
                 else:
                     new_learning_term = 0
                     learning.wrong_count += 1
-                learning.to_be_revised = timezone.now() + timedelta(
-                    days=new_learning_term
-                )
+                # learning_term일 후의 00시로 설정
+                target_date = timezone.now().date() + timedelta(days=new_learning_term)
+                learning.to_be_revised = datetime.combine(target_date, datetime.min.time())
                 learning.learning_term = new_learning_term
                 learning.save()
 
