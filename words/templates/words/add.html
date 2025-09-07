@@ -189,9 +189,7 @@
     <div class="form-card">
       {% if messages %}
         {% for message in messages %}
-          <div class="alert alert-{{ message.tags }} alert-custom mb-3" role="alert">
-            {{ message }}
-          </div>
+          <div class="alert alert-{{ message.tags }} alert-custom mb-3" role="alert">{{ message }}</div>
         {% endfor %}
       {% endif %}
       <form action="{% url 'words:add' %}" method="post">
@@ -225,10 +223,16 @@
             <label for="{{ form.meaning.id_for_label }}">의미</label>
             {{ form.meaning }}
           </div>
+          <div class="form-group-custom">
+            <label for="{{ form.word_class.id_for_label }}">품사</label>
+            {{ form.word_class }}
+            <div class="help-text">단어의 품사를 선택해주세요.</div>
+          </div>
           <button type="submit" class="btn-submit">
             <i class="fas fa-save me-2"></i>단어 등록
           </button>
-          <a href="{% url 'words:index' %}" class="btn btn-secondary btn-custom mt-2">
+          <a href="{% url 'words:index' %}"
+             class="btn btn-secondary btn-custom mt-2">
             <i class="fas fa-home me-2"></i>홈으로
           </a>
         {% else %}
@@ -237,14 +241,14 @@
             학습 목록에 단어 추가
           </h3>
           <div class="form-group-custom">
-
             {{ form.word }}
             <div class="help-text">학습하고 싶은 중국어 단어를 입력하세요.</div>
           </div>
           <button type="submit" class="btn-submit">
             <i class="fas fa-plus me-2"></i>학습 목록에 추가
           </button>
-          <a href="{% url 'words:index' %}" class="btn btn-secondary btn-custom mt-2">
+          <a href="{% url 'words:index' %}"
+             class="btn btn-secondary btn-custom mt-2">
             <i class="fas fa-home me-2"></i>홈으로
           </a>
         {% endif %}

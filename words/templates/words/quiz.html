@@ -74,6 +74,18 @@
         font-weight: 500;
     }
     
+    .word-class-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
     .input-group-custom {
         margin-bottom: 1.5rem;
     }
@@ -240,6 +252,7 @@
           <!-- 단어 표시 -->
           <div class="word-display">
             <div class="word-text">{{ word.word }}</div>
+            <div class="word-class-badge">{{ word.get_word_class_display }}</div>
             {% if word.suffix %}<div class="word-suffix">{{ word.suffix }}</div>{% endif %}
           </div>
           <!-- 입력 필드들 -->
