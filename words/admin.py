@@ -8,6 +8,7 @@ class WordAdmin(admin.ModelAdmin):
     list_filter = ('word_class', 'created_at')
     search_fields = ('word', 'pinyin', 'meaning')
     ordering = ('-created_at',)
+    readonly_fields = ('created_at', 'updated_at')
     fieldsets = (
         ('기본 정보', {
             'fields': ('word', 'pinyin', 'tone', 'meaning', 'word_class')
