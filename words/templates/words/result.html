@@ -185,6 +185,40 @@
     .action-buttons .btn {
         min-width: 200px;
     }
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #4A4A4A, #2F2F2F);
+        color: #fff;
+        border: none;
+        box-shadow: var(--box-shadow);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        padding: 0.8rem 2.2rem;
+    }
+    .btn-primary-custom:hover {
+        background: linear-gradient(135deg, #2F2F2F, #1E1E1E);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+    .btn-success-custom {
+        background: linear-gradient(135deg, var(--success-color), #6BCB1A);
+        color: #fff;
+        border: none;
+        box-shadow: var(--box-shadow);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        padding: 0.8rem 2.2rem;
+    }
+    .btn-success-custom:hover {
+        background: linear-gradient(135deg, #6BCB1A, var(--success-color));
+        color: #fff;
+        transform: translateY(-1px);
+    }
     
     .action-buttons form {
         display: inline-block;
@@ -318,14 +352,11 @@
                 {# key == pk #}
               {% endif %}
             {% endfor %}
-            <button type="submit" class="btn btn-modern">
-              <i class="fas fa-redo me-2"></i>틀린 문제만 다시 퀴즈
+            <button type="submit" class="btn btn-success-custom">
+              <i class="fas fa-redo me-2"></i>틀린 문제 다시 풀기
             </button>
           </form>
         {% endif %}
-        <a href="{% url 'words:add' %}" class="btn btn-secondary btn-custom">
-          <i class="fas fa-plus me-2"></i>단어 추가
-        </a>
       </div>
     {% else %}
       <div class="text-center">
@@ -334,7 +365,7 @@
           결과가 없습니다. 퀴즈를 먼저 풀어보세요!
         </div>
         <a href="{% url 'words:quiz' %}?num_quiz=5"
-           class="btn btn-primary-custom">
+           class="btn btn-success-custom">
           <i class="fas fa-play me-2"></i>퀴즈 시작하기
         </a>
       </div>

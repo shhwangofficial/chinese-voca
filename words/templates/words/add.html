@@ -72,13 +72,15 @@
         background: linear-gradient(135deg, var(--success-color), #6BCB1A);
         color: white;
         border: none;
-        padding: 1rem 2rem;
+        padding: 0.75rem 2rem;
         border-radius: var(--border-radius);
         font-size: 1.1rem;
         font-weight: 600;
         transition: var(--transition);
         box-shadow: var(--box-shadow);
-        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
     }
     
     .btn-submit:hover {
@@ -94,7 +96,7 @@
         margin-top: 0.5rem;
     }
     
-    .btn-custom {
+    .btn-custom, .btn-submit {
         padding: 0.75rem 2rem;
         font-weight: 600;
         border-radius: var(--border-radius);
@@ -181,6 +183,13 @@
         background-color: white;
         border: 1px solid #ccc;
     }
+    .button-group-center {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+    }
   </style>
 {% endblock head %}
 {% block content %}
@@ -223,13 +232,14 @@
             {{ form.word_class }}
             <div class="help-text">단어의 품사를 선택해주세요.</div>
           </div>
-          <button type="submit" class="btn-submit">
-            <i class="fas fa-save me-2"></i>단어 등록
-          </button>
-          <a href="{% url 'words:index' %}"
-             class="btn btn-secondary btn-custom mt-2">
-            <i class="fas fa-home me-2"></i>홈으로
-          </a>
+          <div class="button-group-center">
+            <button type="submit" class="btn-submit">
+              <i class="fas fa-save"></i>단어 등록
+            </button>
+            <a href="{% url 'words:index' %}" class="btn btn-secondary btn-custom">
+              <i class="fas fa-home me-2"></i>홈으로
+            </a>
+          </div>
         {% else %}
           <h3 class="form-title">
             <i class="fas fa-search text-primary"></i>
@@ -245,13 +255,14 @@
             {{ form.word_class }}
             <div class="help-text">단어의 품사를 선택하세요.</div>
           </div>
-          <button type="submit" class="btn-submit">
-            <i class="fas fa-plus me-2"></i>학습 목록에 추가
-          </button>
-          <a href="{% url 'words:index' %}"
-             class="btn btn-secondary btn-custom mt-2">
-            <i class="fas fa-home me-2"></i>홈으로
-          </a>
+          <div class="button-group-center">
+            <button type="submit" class="btn-submit">
+              <i class="fas fa-plus me-2"></i>학습 목록에 추가
+            </button>
+            <a href="{% url 'words:index' %}" class="btn btn-secondary btn-custom">
+              <i class="fas fa-home me-2"></i>홈으로
+            </a>
+          </div>
         {% endif %}
       </form>
     </div>
@@ -272,15 +283,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!wordInput) return;
 
     // 동적 UI를 표시할 div
-    const dynDiv = document.getElementById('dynamic-pinyin-tone');
-    const hiddenPinyin = document.getElementById('hidden-pinyin');
-    const hiddenTone = document.getElementById('hidden-tone');
+    let dynDiv = document.getElementById('dynamic-pinyin-tone');
+    let hiddenPinyin = document.getElementById('hidden-pinyin');
+    let hiddenTone = document.getElementById('hidden-tone');
 
     // 성조 드롭다운 옵션
     const toneSymbols = ['ˉ','ˊ','ˇ','ˋ','•'];
     const toneNums = ['1','2','3','4','5'];
 
     function renderInputs(word) {
+        if (!dynDiv || !hiddenPinyin || !hiddenTone) {
+            return;
+        }
         dynDiv.innerHTML = '';
         if (!word || word.length === 0) return;
 
