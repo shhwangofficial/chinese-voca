@@ -177,6 +177,10 @@
         padding: 1rem 2.5rem;
         box-shadow: 0 2px 8px rgba(74,144,226,0.10);
         transition: background 0.2s, box-shadow 0.2s;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
     .btn-modern-add:hover {
         background: linear-gradient(135deg, #4A90E2, #6BCB1A);
@@ -188,6 +192,12 @@
         align-items: center;
         gap: 1rem;
         margin-bottom: 0;
+        margin-left: auto;
+    }
+    .quiz-btn-modern.btn-wide {
+        padding: 1rem 2.5rem;
+        min-width: 180px;
+        border-radius: 14px;
     }
     @media (max-width: 600px) {
         .quiz-header-row {
@@ -289,7 +299,7 @@
                        placeholder="1~20"
                        required
                        onchange="validateQuizNumber(this)">
-                <button type="submit" class="btn quiz-btn-modern">
+                <button type="submit" class="btn quiz-btn-modern btn-wide">
                   <i class="fas fa-play me-2"></i>퀴즈 시작
                 </button>
               </form>
