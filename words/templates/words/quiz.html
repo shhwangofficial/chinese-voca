@@ -275,7 +275,7 @@
             <input type="text"
                    name="meaning_{{ word.pk }}"
                    id="meaning_{{ word.pk }}"
-                   placeholder="단어의 의미를 입력하세요"
+                   placeholder="단어의 의미를 입력하세요{% if word.meaning_length %} (길이 {{ word.meaning_length }}){% endif %}"
                    required>
           </div>
         </div>

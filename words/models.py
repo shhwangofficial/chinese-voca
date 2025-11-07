@@ -19,6 +19,7 @@ class Word(models.Model):
     pinyin = models.CharField(max_length=40, verbose_name='병음', db_index=True)
     tone = models.CharField(max_length=20, verbose_name='성조')
     meaning = models.CharField(max_length=40, verbose_name='의미', db_index=True)
+    meaning_length = models.PositiveSmallIntegerField(verbose_name='의미 길이', default=0, editable=False)
     word_class = models.CharField(
         max_length=20, 
         choices=WORD_CLASS_CHOICES, 
@@ -43,3 +44,10 @@ class Word(models.Model):
 
     def __str__(self):
         return f"{self.word} ({self.pinyin})"
+
+    def save(self, *args, **kwargs):
+        if self.meaning:
+            self.meaning_length = len(self.meaning.strip())
+        else:
+            self.meaning_length = 0
+        super().save(*args, **kwargs)
