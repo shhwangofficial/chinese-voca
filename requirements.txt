@@ -11,6 +11,7 @@ djlint==1.36.4
 EditorConfig==0.17.0
 exceptiongroup==1.2.2
 executing==2.2.0
+git-filter-repo==2.47.0
 ipython==8.18.1
 ipython_pygments_lexers==1.1.1
 jedi==0.19.2
@@ -25,6 +26,7 @@ platformdirs==4.3.7
 prompt_toolkit==3.0.50
 pure_eval==0.2.3
 Pygments==2.19.1
+python-dotenv==1.2.1
 PyYAML==6.0.2
 regex==2024.11.6
 six==1.17.0

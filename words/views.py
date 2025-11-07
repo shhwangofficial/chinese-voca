@@ -279,6 +279,7 @@ def add(request):
                             request,
                             f"'{word}' ({word_class_label})는 이미 학습 목록에 있습니다.",
                         )
+                        form_type = "LearnWord"
                     else:
                         # 새로 추가된 단어는 즉시 복습할 수 있도록 과거 시간으로 설정
                         to_be_revised = timezone.now() - timedelta(hours=1)
@@ -296,7 +297,10 @@ def add(request):
                             request,
                             f"'{word}' ({word_class_label})를 학습 목록에 추가했습니다.",
                         )
-                    return redirect("words:index")
+                        form = LearnWordForm()
+                        form_type = "LearnWord"
+                        added_word = None
+                        added_word_class = None
                 else:
                     messages.error(
                         request,
