@@ -35,6 +35,10 @@ class Word(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['word', 'pinyin']),
+            models.Index(fields=['word', 'word_class'], name='words_word_word_word_class_idx'),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['word', 'word_class'], name='unique_word_word_class'),
         ]
 
     def __str__(self):

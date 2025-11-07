@@ -251,19 +251,34 @@ def grade(request):
 @require_http_methods(["GET", "POST"])
 def add(request):
     user = request.user
+    added_word = None
+    added_word_class = None
+
+    def set_word_field_readonly(word_form):
+        word_field = word_form.fields.get("word")
+        if word_field:
+            existing_class = word_field.widget.attrs.get("class", "")
+            word_field.widget.attrs["readonly"] = True
+            word_field.widget.attrs["class"] = f"{existing_class} readonly-input".strip()
     if request.method == "POST":
         form_type = request.POST.get("form_type")
         if form_type == "LearnWord":
             form = LearnWordForm(request.POST)
             if form.is_valid():
                 word = form.cleaned_data["word"]
+                word_class = form.cleaned_data["word_class"]
                 # 입력값 정규화
                 word = unicodedata.normalize('NFC', word.strip())
-                found_word = Word.objects.filter(word=word).first()
-                
+                found_word = Word.objects.filter(word=word, word_class=word_class).first()
+
+                word_class_label = dict(Word.WORD_CLASS_CHOICES).get(word_class, word_class)
+
                 if found_word:
-                    if user.learning.filter(word=word).exists():
-                        messages.warning(request, f"'{word}'는 이미 학습 목록에 있습니다.")
+                    if LearningWord.objects.filter(user=user, word=found_word).exists():
+                        messages.warning(
+                            request,
+                            f"'{word}' ({word_class_label})는 이미 학습 목록에 있습니다.",
+                        )
                     else:
                         # 새로 추가된 단어는 즉시 복습할 수 있도록 과거 시간으로 설정
                         to_be_revised = timezone.now() - timedelta(hours=1)
@@ -275,69 +290,100 @@ def add(request):
                         cache.delete(f'user_recent_words_{user.id}')
                         cache.delete(f'user_today_words_{user.id}')
                         # 세션에서 added_word 정리
-                        if "added_word" in request.session:
-                            del request.session["added_word"]
-                        messages.success(request, f"'{word}'를 학습 목록에 추가했습니다.")
+                        request.session.pop("added_word", None)
+                        request.session.pop("added_word_class", None)
+                        messages.success(
+                            request,
+                            f"'{word}' ({word_class_label})를 학습 목록에 추가했습니다.",
+                        )
                     return redirect("words:index")
                 else:
-                    messages.error(request, f"'{word}'는 DB에 존재하지 않아서 직접 추가해야 합니다.")
+                    messages.error(
+                        request,
+                        f"'{word}' ({word_class_label})는 DB에 존재하지 않아서 직접 추가해야 합니다.",
+                    )
                     request.session["added_word"] = word
-                    form = WordForm()
+                    request.session["added_word_class"] = word_class
+                    form = WordForm(initial={"word": word, "word_class": word_class})
+                    set_word_field_readonly(form)
                     form_type = "Word"
                     added_word = word
+                    added_word_class = word_class
 
         elif form_type == "Word":
             form = WordForm(request.POST)
+            set_word_field_readonly(form)
             added_word = request.session.get("added_word")
+            added_word_class = request.session.get("added_word_class")
             if form.is_valid():
-                word = added_word
-                if word:
-                    # 폼 데이터로 Word 객체 생성
+                word = unicodedata.normalize('NFC', form.cleaned_data["word"].strip())
+                word_class = form.cleaned_data["word_class"]
+                word_class_label = dict(Word.WORD_CLASS_CHOICES).get(word_class, word_class)
+
+                existing_word = Word.objects.filter(word=word, word_class=word_class).first()
+
+                if existing_word:
+                    # 기존 단어 정보 업데이트
+                    existing_word.pinyin = form.cleaned_data["pinyin"]
+                    existing_word.tone = form.cleaned_data["tone"]
+                    existing_word.meaning = form.cleaned_data["meaning"]
+                    existing_word.save()
+                    word_obj = existing_word
+                else:
                     word_obj = form.save(commit=False)
                     word_obj.word = word
+                    word_obj.word_class = word_class
                     word_obj.save()
-                    
-                    
-                    # 자동으로 학습 목록에 추가
-                    if user.learning.filter(word=word).exists():
-                        messages.warning(request, f"'{word}'는 이미 학습 목록에 있습니다.")
-                    else:
-                        # 새로 추가된 단어는 즉시 복습할 수 있도록 과거 시간으로 설정
-                        to_be_revised = timezone.now() - timedelta(hours=1)
-                        LearningWord.objects.create(
-                            user=user, word=word_obj, to_be_revised=to_be_revised
-                        )
-                        # 관련 캐시 삭제하여 메인 페이지에서 즉시 반영
-                        cache.delete(f'user_stats_{user.id}')
-                        cache.delete(f'user_recent_words_{user.id}')
-                        cache.delete(f'user_today_words_{user.id}')
-                        # 세션에서 added_word 정리
-                        if "added_word" in request.session:
-                            del request.session["added_word"]
-                        messages.success(request, f"'{word}'가 데이터베이스에 추가되고 학습 목록에도 추가되었습니다.")
-                    
-                    return redirect("words:index")
+
+                if LearningWord.objects.filter(user=user, word=word_obj).exists():
+                    messages.warning(
+                        request,
+                        f"'{word}' ({word_class_label})는 이미 학습 목록에 있습니다.",
+                    )
                 else:
-                    messages.error(request, "단어 정보를 찾을 수 없습니다.")
-                    return redirect("words:add")
+                    # 새로 추가된 단어는 즉시 복습할 수 있도록 과거 시간으로 설정
+                    to_be_revised = timezone.now() - timedelta(hours=1)
+                    LearningWord.objects.create(
+                        user=user, word=word_obj, to_be_revised=to_be_revised
+                    )
+                    # 관련 캐시 삭제하여 메인 페이지에서 즉시 반영
+                    cache.delete(f'user_stats_{user.id}')
+                    cache.delete(f'user_recent_words_{user.id}')
+                    cache.delete(f'user_today_words_{user.id}')
+                    # 세션에서 added_word 정리
+                    request.session.pop("added_word", None)
+                    request.session.pop("added_word_class", None)
+                    messages.success(
+                        request,
+                        f"'{word}' ({word_class_label})가 데이터베이스에 추가되고 학습 목록에도 추가되었습니다.",
+                    )
+
+                return redirect("words:index")
             else:
                 # 폼이 유효하지 않을 때는 word 변수가 정의되지 않을 수 있으므로 안전하게 처리
                 word_value = request.POST.get('word', '알 수 없는 단어')
-                messages.error(request, f"{word_value}를 데이터베이스로 추가에 실패했습니다.")
+                word_class_value = request.POST.get('word_class', '알 수 없는 품사')
+                messages.error(
+                    request,
+                    f"{word_value} ({word_class_value})를 데이터베이스로 추가에 실패했습니다.",
+                )
     else:
         added_word = request.session.pop("added_word", None)
+        added_word_class = request.session.pop("added_word_class", None)
         if added_word:
-            form = LearnWordForm(initial={"word": added_word})
+            form = LearnWordForm(initial={"word": added_word, "word_class": added_word_class})
             form_type = "LearnWord"
         else:
             form = LearnWordForm()
             form_type = "LearnWord"
             added_word = None
+            added_word_class = None
 
     context = {
         "form": form,
         "form_type": form_type,
         "added_word": added_word,
+        "added_word_class": added_word_class,
     }
     response = render(request, "words/add.html", context)
     # 캐시 방지 헤더 추가

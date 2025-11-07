@@ -201,16 +201,11 @@
             새 단어 등록
           </h3>
           <p class="text-muted mb-4">새로운 중국어 단어를 데이터베이스에 등록합니다.</p>
-          {% if added_word %}
-            <div class="form-group-custom">
-              <label>단어</label>
-              <input type="text"
-                     value="{{ added_word }}"
-                     class="form-control-custom readonly-input"
-                     readonly>
-              <div class="help-text">등록할 단어입니다.</div>
-            </div>
-          {% endif %}
+          <div class="form-group-custom">
+            <label for="{{ form.word.id_for_label }}">단어</label>
+            {{ form.word }}
+            <div class="help-text">등록할 단어입니다.</div>
+          </div>
           <!-- 병음/성조 동적 입력 UI -->
           <div class="input-row">
             <div class="input-group-custom input-group-fullwidth">
@@ -241,8 +236,14 @@
             학습 목록에 단어 추가
           </h3>
           <div class="form-group-custom">
+            <label for="{{ form.word.id_for_label }}">단어</label>
             {{ form.word }}
             <div class="help-text">학습하고 싶은 중국어 단어를 입력하세요.</div>
+          </div>
+          <div class="form-group-custom">
+            <label for="{{ form.word_class.id_for_label }}">품사</label>
+            {{ form.word_class }}
+            <div class="help-text">단어의 품사를 선택하세요.</div>
           </div>
           <button type="submit" class="btn-submit">
             <i class="fas fa-plus me-2"></i>학습 목록에 추가
