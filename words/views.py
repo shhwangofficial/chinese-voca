@@ -362,7 +362,7 @@ def add(request):
                         f"'{word}' ({word_class_label})가 데이터베이스에 추가되고 학습 목록에도 추가되었습니다.",
                     )
 
-                return redirect("words:index")
+                return redirect("words:add")
             else:
                 # 폼이 유효하지 않을 때는 word 변수가 정의되지 않을 수 있으므로 안전하게 처리
                 word_value = request.POST.get('word', '알 수 없는 단어')
