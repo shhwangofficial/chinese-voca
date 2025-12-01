@@ -212,6 +212,14 @@
         background-color: white;
         border: 1px solid #ccc;
     }
+    .custom-select.tone-readonly:disabled {
+        opacity: 1;
+        background-color: #f5f7fa;
+        color: #4a4f5b;
+        border-color: #d0d7e2;
+        border-radius: 12px;
+        cursor: not-allowed;
+    }
   </style>
 {% endblock head %}
 {% block content %}
@@ -265,7 +273,8 @@
                      required>
               <input type="hidden"
                      name="tone_{{ word.pk }}"
-                     id="hidden-tone-{{ word.pk }}">
+                     id="hidden-tone-{{ word.pk }}"
+                     value="{{ word.tone }}">
             </div>
           </div>
           <div class="input-group-custom">
@@ -330,6 +339,8 @@ document.addEventListener('DOMContentLoaded', function() {
     {% for word in words %}
     (function() {
         const wordStr = `{{ word.word }}`;
+        const toneDataRaw = `{{ word.tone|default_if_none:''|escapejs }}`;
+        const toneParts = toneDataRaw.trim() ? toneDataRaw.trim().split(/\s+/) : [];
         const pk = `{{ word.pk }}`;
         const dynDiv = document.getElementById('dynamic-pinyin-tone-' + pk);
         const hiddenPinyin = document.getElementById('hidden-pinyin-' + pk);
@@ -386,7 +397,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 select.appendChild(opt);
             }
             select.dataset.idx = i;
-            select.addEventListener('change', updateHidden);
+            const toneValue = toneParts[i] || toneParts[toneParts.length - 1] || '1';
+            select.value = toneValue;
+            select.disabled = true;
+            select.classList.add('tone-readonly');
             col.appendChild(select);
 
             // 병음 input
@@ -406,15 +420,13 @@ document.addEventListener('DOMContentLoaded', function() {
         dynDiv.appendChild(row);
 
         function updateHidden() {
-            // 병음
             const pinyinInputs = dynDiv.querySelectorAll('input');
             const pinyinVal = Array.from(pinyinInputs).map(inp => inp.value.trim()).join(' ');
             hiddenPinyin.value = pinyinVal;
-            // 성조
-            const toneSelects = dynDiv.querySelectorAll('select');
-            const toneVal = Array.from(toneSelects).map(sel => sel.value).join(' ');
-            hiddenTone.value = toneVal;
+            hiddenTone.value = toneParts.length ? toneParts.join(' ') : '';
         }
+
+        updateHidden();
     })();
     {% endfor %}
 });
