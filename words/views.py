@@ -6,6 +6,7 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.http import HttpResponse
 from datetime import timedelta, datetime
+import math
 from .models import Word
 from accounts.models import LearningWord
 from .forms import WordForm, LearnWordForm
@@ -190,12 +191,18 @@ def grade(request):
                 learning = LearningWord.objects.get(user=user, word=ans_word)
                 learning.no_of_revision += 1
                 learning.last_time_revised = timezone.now()  # 마지막 복습 시간 업데이트
+                # 틀린 횟수에 따라 승수를 2→1.5로 점진적으로 낮추는 로지스틱형 보정
+                # m = c + (2 - c) / (1 + wrong_count), 여기서 c는 1.5로 고정
                 if is_correct:
-                    new_learning_term = learning.learning_term * 2 + 1
+                    updated_wrong = learning.wrong_count
                     learning.correct_count += 1
                 else:
-                    new_learning_term = 0
-                    learning.wrong_count += 1
+                    updated_wrong = learning.wrong_count + 1
+                    learning.wrong_count = updated_wrong
+
+                base_multiplier = 1.5
+                multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
+                new_learning_term = math.ceil(learning.learning_term * multiplier + 1)
                 # learning_term일 후의 00시로 설정
                 target_date = timezone.now().date() + timedelta(days=new_learning_term)
                 learning.to_be_revised = datetime.combine(target_date, datetime.min.time())
