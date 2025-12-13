@@ -115,34 +115,6 @@
         border-color: var(--primary-color);
         box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
     }
-    /* 퀴즈 병음 입력칸 기본 스타일 (검은 배경 방지) */
-    .pinyin-input {
-        background-color: #fff;
-        color: #1f2937;
-        border: 2px solid #E9ECEF;
-        border-radius: var(--border-radius);
-        padding: 0.65rem 0.75rem;
-        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-    .pinyin-input:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
-    }
-    /* 의미 입력칸 스타일 */
-    .meaning-input {
-        background-color: #fff;
-        color: #1f2937;
-        border: 2px solid #E9ECEF;
-        border-radius: var(--border-radius);
-        padding: 0.75rem 1rem;
-        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-    .meaning-input:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
-    }
     
     .input-row {
         display: grid;
@@ -312,7 +284,6 @@
             <input type="text"
                    name="meaning_{{ word.pk }}"
                    id="meaning_{{ word.pk }}"
-                   class="meaning-input"
                    placeholder="단어의 의미를 입력하세요{% if word.meaning_length %} (길이 {{ word.meaning_length }}){% endif %}"
                    required>
           </div>
@@ -334,6 +305,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const inputs = document.querySelectorAll('input[type="text"]');
     const totalInputs = inputs.length;
     
+    // 모든 input에 form-control-custom 클래스 추가
+    inputs.forEach(input => {
+        input.classList.add('form-control-custom');
+    });
+    
     function updateProgress() {
         const filledInputs = Array.from(inputs).filter(input => input.value.trim() !== '').length;
         const progress = (filledInputs / totalInputs) * 100;
@@ -344,8 +320,25 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', updateProgress);
     });
     
-    // 폼 제출 시 확인
+    // 폼 제출 시 확인 및 hidden 필드 업데이트
     document.getElementById('quizForm').addEventListener('submit', function(e) {
+        // 모든 단어의 hidden 필드를 최신 값으로 업데이트
+        {% for word in words %}
+        (function() {
+            const pk = `{{ word.pk }}`;
+            const dynDiv = document.getElementById('dynamic-pinyin-tone-' + pk);
+            const hiddenPinyin = document.getElementById('hidden-pinyin-' + pk);
+            if (dynDiv && hiddenPinyin) {
+                const pinyinInputs = dynDiv.querySelectorAll('input.pinyin-input');
+                const pinyinVal = Array.from(pinyinInputs)
+                    .map(inp => inp.value.trim())
+                    .filter(val => val !== '')
+                    .join(' ');
+                hiddenPinyin.value = pinyinVal;
+            }
+        })();
+        {% endfor %}
+        
         const requiredInputs = document.querySelectorAll('input[required]');
         const emptyRequired = Array.from(requiredInputs).filter(input => input.value.trim() === '');
         
@@ -363,8 +356,6 @@ document.addEventListener('DOMContentLoaded', function() {
     {% for word in words %}
     (function() {
         const wordStr = `{{ word.word }}`;
-        const pinyinDataRaw = `{{ word.pinyin|default_if_none:''|escapejs }}`;
-        const pinyinParts = pinyinDataRaw.trim() ? pinyinDataRaw.trim().split(/\s+/) : [];
         const toneDataRaw = `{{ word.tone|default_if_none:''|escapejs }}`;
         const toneParts = toneDataRaw.trim() ? toneDataRaw.trim().split(/\s+/) : [];
         const pk = `{{ word.pk }}`;
@@ -400,8 +391,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 성조/병음 입력 세트
         const toneSymbols = ['ˉ','ˊ','ˇ','ˋ','•'];
         const toneNums = ['1','2','3','4','5'];
-        const segmentCount = (pinyinParts.length > 0 ? pinyinParts.length : wordStr.length);
-        for (let i = 0; i < segmentCount; i++) {
+        for (let i = 0; i < wordStr.length; i++) {
             const col = document.createElement('div');
             col.style.display = 'flex';
             col.style.flexDirection = 'column';
@@ -434,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const inp = document.createElement('input');
             inp.type = 'text';
             inp.maxLength = 8;
-            inp.className = 'pinyin-input';
+            inp.className = 'form-control-custom pinyin-input';
             inp.style.width = '97px';
             inp.style.textAlign = 'center';
             inp.placeholder = `병음${i+1}`;
@@ -447,8 +437,11 @@ document.addEventListener('DOMContentLoaded', function() {
         dynDiv.appendChild(row);
 
         function updateHidden() {
-            const pinyinInputs = dynDiv.querySelectorAll('input');
-            const pinyinVal = Array.from(pinyinInputs).map(inp => inp.value.trim()).join(' ');
+            const pinyinInputs = dynDiv.querySelectorAll('input.pinyin-input');
+            const pinyinVal = Array.from(pinyinInputs)
+                .map(inp => inp.value.trim())
+                .filter(val => val !== '')
+                .join(' ');
             hiddenPinyin.value = pinyinVal;
             hiddenTone.value = toneParts.length ? toneParts.join(' ') : '';
         }

@@ -7,6 +7,7 @@ from django.core.cache import cache
 from django.http import HttpResponse
 from datetime import timedelta, datetime
 import math
+import re
 from .models import Word
 from accounts.models import LearningWord
 from .forms import WordForm, LearnWordForm
@@ -181,32 +182,44 @@ def grade(request):
                 user_tone = request.POST.get(f"tone_{pk}", "").strip()
                 user_meaning = request.POST.get(f"meaning_{pk}", "").strip()
 
+                # 병음과 의미의 공백 정규화 (여러 공백을 하나로, 앞뒤 공백 제거)
+                user_pinyin_normalized = re.sub(r'\s+', ' ', user_pinyin).strip()
+                user_meaning_normalized = re.sub(r'\s+', ' ', user_meaning).strip()
+                ans_pinyin_normalized = re.sub(r'\s+', ' ', ans_word.pinyin).strip()
+                ans_meaning_normalized = re.sub(r'\s+', ' ', ans_word.meaning).strip()
+
                 is_correct = (
-                    user_pinyin == ans_word.pinyin
+                    user_pinyin_normalized == ans_pinyin_normalized
                     and
                     # user_tone == ans_word.tone and
-                    user_meaning == ans_word.meaning
+                    user_meaning_normalized == ans_meaning_normalized
                 )
 
                 learning = LearningWord.objects.get(user=user, word=ans_word)
                 learning.no_of_revision += 1
                 learning.last_time_revised = timezone.now()  # 마지막 복습 시간 업데이트
-                # 틀린 횟수에 따라 승수를 2→1.5로 점진적으로 낮추는 로지스틱형 보정
-                # m = c + (2 - c) / (1 + wrong_count), 여기서 c는 1.5로 고정
+                
                 if is_correct:
+                    # 정답일 때: 틀린 횟수에 따라 승수를 2→1.5로 점진적으로 낮추는 로지스틱형 보정
+                    # m = c + (2 - c) / (1 + wrong_count), 여기서 c는 1.5로 고정
                     updated_wrong = learning.wrong_count
                     learning.correct_count += 1
+                    
+                    base_multiplier = 1.5
+                    multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
+                    new_learning_term = math.ceil(learning.learning_term * multiplier + 1)
+                    # learning_term일 후의 00시로 설정
+                    target_date = timezone.now().date() + timedelta(days=new_learning_term)
+                    learning.to_be_revised = datetime.combine(target_date, datetime.min.time())
+                    learning.learning_term = new_learning_term
                 else:
-                    updated_wrong = learning.wrong_count + 1
-                    learning.wrong_count = updated_wrong
-
-                base_multiplier = 1.5
-                multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
-                new_learning_term = math.ceil(learning.learning_term * multiplier + 1)
-                # learning_term일 후의 00시로 설정
-                target_date = timezone.now().date() + timedelta(days=new_learning_term)
-                learning.to_be_revised = datetime.combine(target_date, datetime.min.time())
-                learning.learning_term = new_learning_term
+                    # 오답일 때: 다음날 즉시 복습
+                    learning.wrong_count += 1
+                    new_learning_term = 0
+                    target_date = timezone.now().date() + timedelta(days=new_learning_term)
+                    learning.to_be_revised = datetime.combine(target_date, datetime.min.time())
+                    learning.learning_term = new_learning_term
+                
                 learning.save()
 
                 # results의 key를 Word의 pk(정수)로 저장
