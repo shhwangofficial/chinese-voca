@@ -6,6 +6,8 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.http import HttpResponse
 from datetime import timedelta, datetime
+from django.db.models import Count, Q
+from django.db.models.functions import TruncDate
 import math
 import re
 from .models import Word
@@ -24,11 +26,13 @@ def index(request):
         cache_key_stats = f'user_stats_{user.id}'
         cache_key_recent = f'user_recent_words_{user.id}'
         cache_key_today = f'user_today_words_{user.id}'
+        cache_key_weekly = f'user_weekly_stats_{user.id}'
         
         # 캐시에서 데이터 가져오기
         cached_stats = cache.get(cache_key_stats)
         cached_recent = cache.get(cache_key_recent)
         cached_today = cache.get(cache_key_today)
+        cached_weekly = cache.get(cache_key_weekly)
         
         if cached_stats is None:
             # 사용자 학습 통계
@@ -94,11 +98,61 @@ def index(request):
             cached_today = today_words
             cache.set(cache_key_today, cached_today, CACHE_TTL)
         
+        if cached_weekly is None:
+            # 최근 일주일 통계 계산
+            today = timezone.now().date()
+            week_ago = today - timedelta(days=6)  # 오늘 포함 7일
+            
+            # 일주일간 날짜 리스트 생성
+            date_list = [week_ago + timedelta(days=i) for i in range(7)]
+            
+            # 날짜별 추가한 단어 수
+            words_added_by_date = (
+                user.learningword_set
+                .filter(learning_since__date__gte=week_ago, learning_since__date__lte=today)
+                .annotate(date=TruncDate('learning_since'))
+                .values('date')
+                .annotate(count=Count('id'))
+                .order_by('date')
+            )
+            added_dict = {item['date']: item['count'] for item in words_added_by_date}
+            
+            # 날짜별 맞은 단어 수 (last_time_revised 기준, correct_count > 0인 경우)
+            words_correct_by_date = (
+                user.learningword_set
+                .filter(
+                    last_time_revised__date__gte=week_ago,
+                    last_time_revised__date__lte=today,
+                    correct_count__gt=0
+                )
+                .annotate(date=TruncDate('last_time_revised'))
+                .values('date')
+                .annotate(count=Count('id'))
+                .order_by('date')
+            )
+            correct_dict = {item['date']: item['count'] for item in words_correct_by_date}
+            
+            # 모든 날짜에 대해 데이터 생성 (없으면 0)
+            weekly_stats = []
+            for date in date_list:
+                weekly_stats.append({
+                    'date': date,
+                    'date_str': date.strftime('%m/%d'),
+                    'day_name': ['월', '화', '수', '목', '금', '토', '일'][date.weekday()],
+                    'words_added': added_dict.get(date, 0),
+                    'words_correct': correct_dict.get(date, 0),
+                })
+            
+            cached_weekly = weekly_stats
+            cache.set(cache_key_weekly, cached_weekly, CACHE_TTL)
+        
         context = {
             'total_learning_words': cached_stats['total_learning_words'],
             'today_review_words': cached_stats['today_review_words'],
             'recent_words': cached_recent,
             'today_words': cached_today,
+            'weekly_stats': cached_weekly,
+            'today': timezone.now().date(),
         }
         response = render(request, "words/index.html", context)
         # 캐시 방지 헤더 추가
@@ -235,6 +289,7 @@ def grade(request):
         cache.delete(f'user_stats_{user.id}')
         cache.delete(f'user_recent_words_{user.id}')
         cache.delete(f'user_today_words_{user.id}')
+        cache.delete(f'user_weekly_stats_{user.id}')
         request.session["grade_results"] = results
         return redirect("words:grade")
 
@@ -310,6 +365,7 @@ def add(request):
                         cache.delete(f'user_stats_{user.id}')
                         cache.delete(f'user_recent_words_{user.id}')
                         cache.delete(f'user_today_words_{user.id}')
+                        cache.delete(f'user_weekly_stats_{user.id}')
                         # 세션에서 added_word 정리
                         request.session.pop("added_word", None)
                         request.session.pop("added_word_class", None)

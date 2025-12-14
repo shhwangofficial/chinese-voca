@@ -4,6 +4,7 @@
 {% endblock title %}
 {% block head %}
   <style>
+    /* --- 기존 스타일 --- */
     .quiz-modern-card {
         border: none;
         border-radius: 18px;
@@ -11,6 +12,8 @@
         background: white;
         padding: 2.5rem 2rem;
         transition: box-shadow 0.2s;
+        /* 마진 제거 강제 */
+        margin-bottom: 0 !important;
     }
     .quiz-modern-card:hover {
         box-shadow: 0 12px 32px rgba(74, 144, 226, 0.18), 0 2px 8px rgba(0,0,0,0.06);
@@ -114,6 +117,7 @@
         box-shadow: 0 4px 16px rgba(74,144,226,0.18);
         color: #fff;
     }
+    
     /* 현대적 카드 스타일 */
     .card-modern {
         border: none;
@@ -121,8 +125,12 @@
         box-shadow: 0 6px 24px rgba(74, 144, 226, 0.10), 0 1.5px 6px rgba(0,0,0,0.04);
         background: white;
         padding: 2rem 1.5rem 1.5rem 1.5rem;
-        margin-bottom: 2rem;
+        /* 마진 제거 강제 */
+        margin-bottom: 0 !important;
         transition: box-shadow 0.2s;
+        height: 100%; 
+        display: flex;
+        flex-direction: column;
     }
     .card-modern:hover {
         box-shadow: 0 12px 32px rgba(74, 144, 226, 0.18), 0 2px 8px rgba(0,0,0,0.06);
@@ -184,7 +192,6 @@
         font-size: 0.97rem;
         margin-top: 0.2rem;
     }
-    /* 새로운 단어 추가 버튼만 현대적으로 */
     .btn-modern-add {
         background: linear-gradient(135deg, #6BCB1A, #4A90E2);
         color: #fff;
@@ -247,6 +254,213 @@
             display: block;
         }
     }
+    
+    /* --- 통계 카드 스타일 --- */
+    .stats-card {
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 6px 24px rgba(74, 144, 226, 0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+        padding: 2rem;
+        height: 100%; 
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: box-shadow 0.2s;
+        /* 마진 제거 강제 */
+        margin-bottom: 0 !important;
+    }
+    .stats-card:hover {
+        box-shadow: 0 12px 32px rgba(74, 144, 226, 0.18), 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .stats-number {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #4A90E2;
+        line-height: 1.2;
+        margin-bottom: 0.5rem;
+    }
+    .stats-label {
+        font-size: 1.1rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+    /* --- 일주일 통계 스타일 --- */
+    .weekly-stats-card-body {
+        padding: 0 !important;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .weekly-stats-container {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .weekly-stats-y-axis {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 30px;
+      padding-right: 0;
+      font-size: 0.75rem;
+      color: #999;
+      text-align: center;
+      height: 170px;
+  }
+    .weekly-stats-y-axis-item {
+        line-height: 1;
+    }
+    .weekly-stats-chart-wrapper {
+        flex: 1;
+        position: relative;
+        height: 200px;
+    }
+    .weekly-stats-grid-lines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 170px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        pointer-events: none;
+    }
+    .weekly-stats-grid-line {
+        width: 100%;
+        height: 1px;
+        background-color: rgba(0, 0, 0, 0.08);
+    }
+    .weekly-stats-chart {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 0.4rem;
+        height: 100%;
+    }
+    .weekly-stat-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 200px;
+    }
+    .weekly-stat-bars {
+        display: flex;
+        gap: 0.25rem;
+        width: 100%;
+        justify-content: center;
+        flex: 0 0 170px;
+        align-items: flex-end;
+    }
+    .weekly-stat-bar-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        justify-content: flex-end;
+    }
+    .weekly-stat-bar-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    .weekly-stat-bar {
+        width: 100%;
+        min-height: 4px;
+        border-radius: 4px 4px 0 0;
+        transition: height 0.3s ease;
+    }
+    .weekly-stat-bar-added {
+        background: linear-gradient(180deg, #4A90E2, #6BCB1A);
+    }
+    .weekly-stat-bar-correct {
+        background: linear-gradient(180deg, #667eea, #764ba2);
+    }
+    .weekly-stat-date {
+        text-align: center;
+        flex: 0 0 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 0;
+    }
+    .weekly-stat-date-num {
+        font-size: 0.75rem;
+        color: #666;
+    }
+    .weekly-stats-legend {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+    }
+    .legend-added {
+        background: linear-gradient(135deg, #4A90E2, #6BCB1A);
+    }
+    .legend-correct {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    @media (max-width: 768px) {
+        .weekly-stats-chart {
+            gap: 0.3rem;
+            height: 100%;
+        }
+        .weekly-stats-chart-wrapper {
+            height: 180px;
+        }
+        .weekly-stat-bars {
+            height: 150px;
+        }
+        .weekly-stat-bar-container {
+            height: 150px;
+        }
+        .weekly-stat-bar-wrapper {
+            height: 150px;
+        }
+        .weekly-stats-grid-lines {
+            height: 150px;
+        }
+        .weekly-stats-y-axis {
+            height: 150px;
+        }
+        .weekly-stat-item {
+            height: 180px;
+        }
+        .weekly-stat-date-num {
+            font-size: 0.65rem;
+        }
+        .weekly-stats-y-axis {
+            min-width: 25px;
+            font-size: 0.65rem;
+        }
+    }
+    
+    /* [추가] 커스텀 카드 마진도 제거 */
+    .card-custom {
+        margin-bottom: 0 !important;
+    }
   </style>
   <script>
     function validateQuizNumber(input) {
@@ -256,7 +470,6 @@
         } else if (value > 20) {
             input.value = 20;
         }
-        // 폼의 hidden input에도 값 복사
         const formInput = document.getElementById('form_num_quiz');
         if (formInput) {
             formInput.value = input.value;
@@ -277,7 +490,6 @@
             return false;
         }
         
-        // 폼 제출 전에 값 복사
         const formInput = document.getElementById('form_num_quiz');
         if (formInput) {
             formInput.value = value;
@@ -286,24 +498,91 @@
         return true;
     }
     
-    // 페이지 로드 시 초기값 설정
     document.addEventListener('DOMContentLoaded', function() {
         const input = document.getElementById('num_quiz');
         const formInput = document.getElementById('form_num_quiz');
         if (input && formInput) {
             formInput.value = input.value;
-            // 입력 필드 값이 변경될 때마다 폼 input에도 반영
             input.addEventListener('input', function() {
                 formInput.value = input.value;
+            });
+        }
+        
+        const chartContainer = document.getElementById('weeklyStatsChart');
+        const yAxisContainer = document.getElementById('weeklyStatsYAxis');
+        const gridLinesContainer = document.getElementById('weeklyStatsGridLines');
+        
+        if (chartContainer && yAxisContainer && gridLinesContainer) {
+            const items = chartContainer.querySelectorAll('.weekly-stat-item');
+            let maxAdded = 0;
+            let maxCorrect = 0;
+            
+            items.forEach(item => {
+                const added = parseInt(item.dataset.added) || 0;
+                const correct = parseInt(item.dataset.correct) || 0;
+                if (added > maxAdded) maxAdded = added;
+                if (correct > maxCorrect) maxCorrect = correct;
+            });
+            
+            const maxValue = Math.max(maxAdded, maxCorrect, 1);
+            const yAxisSteps = maxValue < 5 ? maxValue : 5;
+            
+            yAxisContainer.innerHTML = '';
+            for (let i = yAxisSteps; i >= 0; i--) {
+                let value;
+                if (maxValue < 5) {
+                    value = i; 
+                } else {
+                    value = Math.ceil((maxValue / yAxisSteps) * i);
+                }
+
+                const yAxisItem = document.createElement('div');
+                yAxisItem.className = 'weekly-stats-y-axis-item';
+                yAxisItem.textContent = value;
+                
+                if (value === 0) {
+                    yAxisItem.style.visibility = 'hidden';
+                }
+                
+                yAxisContainer.appendChild(yAxisItem);
+            }
+            
+            gridLinesContainer.innerHTML = '';
+            for (let i = yAxisSteps; i >= 0; i--) {
+                const gridLine = document.createElement('div');
+                gridLine.className = 'weekly-stats-grid-line';
+                
+                if (i === 0) {
+                    gridLine.style.visibility = 'hidden';
+                }
+                
+                gridLinesContainer.appendChild(gridLine);
+            }
+            
+            items.forEach(item => {
+                const added = parseInt(item.dataset.added) || 0;
+                const correct = parseInt(item.dataset.correct) || 0;
+                
+                const addedBar = item.querySelector('.weekly-stat-bar-added');
+                const correctBar = item.querySelector('.weekly-stat-bar-correct');
+                
+                if (addedBar) {
+                    const height = maxValue > 0 ? (added / maxValue * 100) : 0;
+                    addedBar.style.height = height + '%';
+                }
+                
+                if (correctBar) {
+                    const height = maxValue > 0 ? (correct / maxValue * 100) : 0;
+                    correctBar.style.height = height + '%';
+                }
             });
         }
     });
   </script>
 {% endblock head %}
 {% block content %}
-  <div class="row">
-    <!-- 단어 추가 카드 -->
-    <div class="col-12 mb-4">
+  <div class="row g-2">
+    <div class="col-12 mb-2">
       <div class="card card-custom">
         <div class="card-body text-center">
           <div class="row align-items-center">
@@ -323,15 +602,64 @@
         </div>
       </div>
     </div>
-    <!-- 통계 카드 -->
-    <div class="col-12 mb-4">
+    <div class="col-md-6 mb-2">
       <div class="stats-card">
         <div class="stats-number">{{ total_learning_words }}</div>
         <div class="stats-label">학습 중인 단어의 총 개수</div>
       </div>
     </div>
-    <!-- 오늘의 퀴즈 섹션 -->
-    <div class="col-12 mb-4">
+    <div class="col-md-6 mb-2">
+      <div class="card card-modern">
+        <div class="card-body weekly-stats-card-body">
+          <div class="weekly-stats-container">
+            <div class="weekly-stats-y-axis" id="weeklyStatsYAxis"></div>
+            <div class="weekly-stats-chart-wrapper">
+              <div class="weekly-stats-grid-lines" id="weeklyStatsGridLines"></div>
+              <div class="weekly-stats-chart" id="weeklyStatsChart">
+                {% for stat in weekly_stats %}
+                  <div class="weekly-stat-item"
+                       data-added="{{ stat.words_added }}"
+                       data-correct="{{ stat.words_correct }}">
+                    <div class="weekly-stat-bars">
+                      <div class="weekly-stat-bar-container">
+                        <div class="weekly-stat-bar-wrapper">
+                          <div class="weekly-stat-bar weekly-stat-bar-added"></div>
+                        </div>
+                      </div>
+                      <div class="weekly-stat-bar-container">
+                        <div class="weekly-stat-bar-wrapper">
+                          <div class="weekly-stat-bar weekly-stat-bar-correct"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="weekly-stat-date">
+                      <div class="weekly-stat-date-num">
+                        {% if stat.date == today %}
+                          오늘
+                        {% else %}
+                          {{ stat.day_name }}
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <div class="weekly-stats-legend">
+            <div class="legend-item">
+              <span class="legend-color legend-added"></span>
+              <span>추가한 단어</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color legend-correct"></span>
+              <span>맞은 단어</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 mb-2">
       <div class="card quiz-modern-card">
         <div class="card-body">
           <div class="quiz-header-row">
@@ -379,9 +707,8 @@
         </div>
       </div>
     </div>
-    <!-- 오늘 복습할 단어들 -->
     {% if today_words %}
-      <div class="col-md-6 mb-4">
+      <div class="col-md-6 mb-2">
         <div class="card card-modern">
           <div class="card-body">
             <h4 class="card-title mb-3">
@@ -418,9 +745,8 @@
         </div>
       </div>
     {% endif %}
-    <!-- 최근 추가한 단어들 -->
     {% if recent_words %}
-      <div class="col-md-6 mb-4">
+      <div class="col-md-6 mb-2">
         <div class="card card-modern">
           <div class="card-body">
             <h4 class="card-title mb-3">
