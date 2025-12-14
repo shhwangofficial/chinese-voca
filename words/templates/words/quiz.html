@@ -356,6 +356,8 @@ document.addEventListener('DOMContentLoaded', function() {
     {% for word in words %}
     (function() {
         const wordStr = `{{ word.word }}`;
+        const pinyinDataRaw = `{{ word.pinyin|default_if_none:''|escapejs }}`;
+        const pinyinParts = pinyinDataRaw.trim() ? pinyinDataRaw.trim().split(/\s+/) : [];
         const toneDataRaw = `{{ word.tone|default_if_none:''|escapejs }}`;
         const toneParts = toneDataRaw.trim() ? toneDataRaw.trim().split(/\s+/) : [];
         const pk = `{{ word.pk }}`;
@@ -391,7 +393,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // 성조/병음 입력 세트
         const toneSymbols = ['ˉ','ˊ','ˇ','ˋ','•'];
         const toneNums = ['1','2','3','4','5'];
-        for (let i = 0; i < wordStr.length; i++) {
+        // 실제 저장된 병음 토큰 수에 맞게 칸 수 결정 (pinyinParts가 있으면 그 길이, 없으면 한자 글자 수)
+        const segmentCount = (pinyinParts.length > 0 ? pinyinParts.length : wordStr.length);
+        for (let i = 0; i < segmentCount; i++) {
             const col = document.createElement('div');
             col.style.display = 'flex';
             col.style.flexDirection = 'column';
