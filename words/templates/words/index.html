@@ -2,6 +2,7 @@
 {% block title %}
   홈 - 중국어 단어장
 {% endblock title %}
+
 {% block head %}
   <style>
     /* --- 기존 스타일 --- */
@@ -12,7 +13,6 @@
         background: white;
         padding: 2.5rem 2rem;
         transition: box-shadow 0.2s;
-        /* 마진 제거 강제 */
         margin-bottom: 0 !important;
     }
     .quiz-modern-card:hover {
@@ -125,7 +125,6 @@
         box-shadow: 0 6px 24px rgba(74, 144, 226, 0.10), 0 1.5px 6px rgba(0,0,0,0.04);
         background: white;
         padding: 2rem 1.5rem 1.5rem 1.5rem;
-        /* 마진 제거 강제 */
         margin-bottom: 0 !important;
         transition: box-shadow 0.2s;
         height: 100%; 
@@ -267,7 +266,6 @@
         justify-content: center;
         align-items: center;
         transition: box-shadow 0.2s;
-        /* 마진 제거 강제 */
         margin-bottom: 0 !important;
     }
     .stats-card:hover {
@@ -373,12 +371,69 @@
         justify-content: flex-end;
         align-items: center;
     }
+
+    /* --- 막대그래프 툴팁 스타일 (NEW) --- */
     .weekly-stat-bar {
         width: 100%;
         min-height: 4px;
         border-radius: 4px 4px 0 0;
         transition: height 0.3s ease;
+        position: relative; /* 툴팁 위치 기준 */
+        cursor: pointer;    /* 클릭 가능 표시 */
     }
+    
+    /* 툴팁 말풍선 */
+    .weekly-stat-bar::after {
+        content: attr(data-value);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-8px);
+        background-color: rgba(50, 50, 50, 0.9);
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s, transform 0.2s;
+        pointer-events: none;
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* 툴팁 화살표 */
+    .weekly-stat-bar::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 6px;
+        border-style: solid;
+        border-color: rgba(50, 50, 50, 0.9) transparent transparent transparent;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s;
+        pointer-events: none;
+        z-index: 100;
+        margin-bottom: -12px;
+    }
+    
+    /* 호버 시 툴팁 표시 */
+    .weekly-stat-bar:hover::after {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(-14px);
+    }
+    .weekly-stat-bar:hover::before {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(-6px);
+    }
+
     .weekly-stat-bar-added {
         background: linear-gradient(180deg, #4A90E2, #6BCB1A);
     }
@@ -457,7 +512,6 @@
         }
     }
     
-    /* [추가] 커스텀 카드 마진도 제거 */
     .card-custom {
         margin-bottom: 0 !important;
     }
@@ -580,6 +634,7 @@
     });
   </script>
 {% endblock head %}
+
 {% block content %}
   <div class="row g-2">
     <div class="col-12 mb-2">
@@ -602,12 +657,14 @@
         </div>
       </div>
     </div>
+    
     <div class="col-md-6 mb-2">
       <div class="stats-card">
         <div class="stats-number">{{ total_learning_words }}</div>
         <div class="stats-label">학습 중인 단어의 총 개수</div>
       </div>
     </div>
+    
     <div class="col-md-6 mb-2">
       <div class="card card-modern">
         <div class="card-body weekly-stats-card-body">
@@ -623,12 +680,14 @@
                     <div class="weekly-stat-bars">
                       <div class="weekly-stat-bar-container">
                         <div class="weekly-stat-bar-wrapper">
-                          <div class="weekly-stat-bar weekly-stat-bar-added"></div>
+                          <div class="weekly-stat-bar weekly-stat-bar-added"
+                               data-value="{{ stat.words_added }}개"></div>
                         </div>
                       </div>
                       <div class="weekly-stat-bar-container">
                         <div class="weekly-stat-bar-wrapper">
-                          <div class="weekly-stat-bar weekly-stat-bar-correct"></div>
+                           <div class="weekly-stat-bar weekly-stat-bar-correct"
+                               data-value="{{ stat.words_correct }}개"></div>
                         </div>
                       </div>
                     </div>
@@ -659,6 +718,7 @@
         </div>
       </div>
     </div>
+    
     <div class="col-12 mb-2">
       <div class="card quiz-modern-card">
         <div class="card-body">
@@ -707,6 +767,7 @@
         </div>
       </div>
     </div>
+    
     {% if today_words %}
       <div class="col-md-6 mb-2">
         <div class="card card-modern">
@@ -745,6 +806,7 @@
         </div>
       </div>
     {% endif %}
+    
     {% if recent_words %}
       <div class="col-md-6 mb-2">
         <div class="card card-modern">
