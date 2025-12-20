@@ -20,4 +20,16 @@ class LearningWord(models.Model):
     no_of_revision = models.IntegerField(default=1)
     wrong_count = models.IntegerField(default=0)  # 틀린 횟수
     correct_count = models.IntegerField(default=0)  # 맞은 횟수
-    last_result_is_correct = models.BooleanField(default=False)  # 마지막 학습 결과가 정답인지 여부
+
+
+class StudyLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    word = models.ForeignKey(Word, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    date = models.DateField(db_index=True)  # 로직상 날짜 (4시 기준)
+    is_correct = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'date']),
+        ]

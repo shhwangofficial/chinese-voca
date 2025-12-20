@@ -6,12 +6,12 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.http import HttpResponse
 from datetime import timedelta, datetime
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F, ExpressionWrapper, DateTimeField
 from django.db.models.functions import TruncDate
 import math
 import re
 from .models import Word
-from accounts.models import LearningWord
+from accounts.models import LearningWord, StudyLog
 from .forms import WordForm, LearnWordForm
 from newpjt.settings import CACHE_TTL
 import unicodedata
@@ -99,33 +99,43 @@ def index(request):
             cache.set(cache_key_today, cached_today, CACHE_TTL)
         
         if cached_weekly is None:
-            # 최근 일주일 통계 계산
-            today = timezone.now().date()
+            # 최근 일주일 통계 계산 (4시 기준)
+            # 현재 시간에서 4시간을 뺀 시간을 기준으로 날짜 계산
+            stats_now = timezone.now() - timedelta(hours=4)
+            today = stats_now.date()
             week_ago = today - timedelta(days=6)  # 오늘 포함 7일
             
             # 일주일간 날짜 리스트 생성
             date_list = [week_ago + timedelta(days=i) for i in range(7)]
             
             # 날짜별 추가한 단어 수
+            # DB 레코드 시간도 4시간 빼고 날짜로 변환해야 함
             words_added_by_date = (
                 user.learningword_set
-                .filter(learning_since__date__gte=week_ago, learning_since__date__lte=today)
-                .annotate(date=TruncDate('learning_since'))
+                .annotate(
+                    adjusted_time=ExpressionWrapper(
+                        F('learning_since') - timedelta(hours=4),
+                        output_field=DateTimeField()
+                    )
+                )
+                .filter(adjusted_time__date__gte=week_ago, adjusted_time__date__lte=today)
+                .annotate(date=TruncDate('adjusted_time'))
                 .values('date')
                 .annotate(count=Count('id'))
                 .order_by('date')
             )
             added_dict = {item['date']: item['count'] for item in words_added_by_date}
             
-            # 날짜별 맞은 단어 수 (last_time_revised 기준, correct_count > 0인 경우)
+            # 날짜별 맞은 단어 수 (StudyLog 기준)
+            # StudyLog는 이미 date 필드가 "논리적 날짜"를 가지고 있으므로 바로 집계 가능
             words_correct_by_date = (
-                user.learningword_set
+                StudyLog.objects
                 .filter(
-                    last_time_revised__date__gte=week_ago,
-                    last_time_revised__date__lte=today,
-                    last_result_is_correct=True
+                    user=user,
+                    date__gte=week_ago,
+                    date__lte=today,
+                    is_correct=True
                 )
-                .annotate(date=TruncDate('last_time_revised'))
                 .values('date')
                 .annotate(count=Count('id'))
                 .order_by('date')
@@ -253,27 +263,41 @@ def grade(request):
                 learning.no_of_revision += 1
                 learning.last_time_revised = timezone.now()  # 마지막 복습 시간 업데이트
                 
+                # StudyLog 생성
+                # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함
+                log_date = (timezone.now() - timedelta(hours=4)).date()
+                StudyLog.objects.create(
+                    user=user,
+                    word=ans_word,
+                    is_correct=is_correct,
+                    date=log_date
+                )
+
                 if is_correct:
                     # 정답일 때: 틀린 횟수에 따라 승수를 2→1.5로 점진적으로 낮추는 로지스틱형 보정
                     # m = c + (2 - c) / (1 + wrong_count), 여기서 c는 1.5로 고정
                     updated_wrong = learning.wrong_count
                     learning.correct_count += 1
-                    learning.last_result_is_correct = True
                     
                     base_multiplier = 1.5
                     multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
                     new_learning_term = math.ceil(learning.learning_term * multiplier + 1)
-                    # learning_term일 후의 00시로 설정
-                    target_date = timezone.now().date() + timedelta(days=new_learning_term)
-                    learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time()))
+                    # learning_term일 후의 04시로 설정 (4시부터 퀴즈 가능)
+                    # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함
+                    logical_today = (timezone.now() - timedelta(hours=4)).date()
+                    target_date = logical_today + timedelta(days=new_learning_term)
+                    # target_date의 04:00:00으로 설정
+                    learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time())) + timedelta(hours=4)
                     learning.learning_term = new_learning_term
                 else:
                     # 오답일 때: 다음날 즉시 복습
                     learning.wrong_count += 1
-                    learning.last_result_is_correct = False
                     new_learning_term = 0
-                    target_date = timezone.now().date() + timedelta(days=new_learning_term)
-                    learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time()))
+                    # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함
+                    logical_today = (timezone.now() - timedelta(hours=4)).date()
+                    target_date = logical_today + timedelta(days=new_learning_term)
+                    # target_date의 04:00:00으로 설정
+                    learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time())) + timedelta(hours=4)
                     learning.learning_term = new_learning_term
                 
                 learning.save()
