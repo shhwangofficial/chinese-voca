@@ -20,3 +20,4 @@ class LearningWord(models.Model):
     no_of_revision = models.IntegerField(default=1)
     wrong_count = models.IntegerField(default=0)  # 틀린 횟수
     correct_count = models.IntegerField(default=0)  # 맞은 횟수
+    last_result_is_correct = models.BooleanField(default=False)  # 마지막 학습 결과가 정답인지 여부

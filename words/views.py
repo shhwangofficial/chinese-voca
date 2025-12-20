@@ -123,7 +123,7 @@ def index(request):
                 .filter(
                     last_time_revised__date__gte=week_ago,
                     last_time_revised__date__lte=today,
-                    correct_count__gt=0
+                    last_result_is_correct=True
                 )
                 .annotate(date=TruncDate('last_time_revised'))
                 .values('date')
@@ -258,20 +258,22 @@ def grade(request):
                     # m = c + (2 - c) / (1 + wrong_count), 여기서 c는 1.5로 고정
                     updated_wrong = learning.wrong_count
                     learning.correct_count += 1
+                    learning.last_result_is_correct = True
                     
                     base_multiplier = 1.5
                     multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
                     new_learning_term = math.ceil(learning.learning_term * multiplier + 1)
                     # learning_term일 후의 00시로 설정
                     target_date = timezone.now().date() + timedelta(days=new_learning_term)
-                    learning.to_be_revised = datetime.combine(target_date, datetime.min.time())
+                    learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time()))
                     learning.learning_term = new_learning_term
                 else:
                     # 오답일 때: 다음날 즉시 복습
                     learning.wrong_count += 1
+                    learning.last_result_is_correct = False
                     new_learning_term = 0
                     target_date = timezone.now().date() + timedelta(days=new_learning_term)
-                    learning.to_be_revised = datetime.combine(target_date, datetime.min.time())
+                    learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time()))
                     learning.learning_term = new_learning_term
                 
                 learning.save()
@@ -430,6 +432,7 @@ def add(request):
                     cache.delete(f'user_stats_{user.id}')
                     cache.delete(f'user_recent_words_{user.id}')
                     cache.delete(f'user_today_words_{user.id}')
+                    cache.delete(f'user_weekly_stats_{user.id}')
                     # 세션에서 added_word 정리
                     request.session.pop("added_word", None)
                     request.session.pop("added_word_class", None)
