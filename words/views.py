@@ -22,11 +22,17 @@ def index(request):
     if request.user.is_authenticated:
         user = request.user
         
-        # 사용자별 캐시 키 생성
-        cache_key_stats = f'user_stats_{user.id}'
-        cache_key_recent = f'user_recent_words_{user.id}'
-        cache_key_today = f'user_today_words_{user.id}'
-        cache_key_weekly = f'user_weekly_stats_{user.id}'
+        # 한국 시간 기준 현재 시간 구하기
+        now_kst = timezone.localtime()
+        # 4시간을 빼서 "논리적 오늘" 날짜 구하기 (오전 4시 기준 날짜 변경)
+        logical_date = (now_kst - timedelta(hours=4)).date()
+        logical_date_str = logical_date.strftime("%Y-%m-%d")
+
+        # 사용자별 캐시 키 생성 (날짜 포함)
+        cache_key_stats = f'user_stats_{user.id}_{logical_date_str}'
+        cache_key_recent = f'user_recent_words_{user.id}_{logical_date_str}'
+        cache_key_today = f'user_today_words_{user.id}_{logical_date_str}'
+        cache_key_weekly = f'user_weekly_stats_{user.id}_{logical_date_str}'
         
         # 캐시에서 데이터 가져오기
         cached_stats = cache.get(cache_key_stats)
@@ -101,7 +107,9 @@ def index(request):
         if cached_weekly is None:
             # 최근 일주일 통계 계산 (4시 기준)
             # 현재 시간에서 4시간을 뺀 시간을 기준으로 날짜 계산
-            stats_now = timezone.now() - timedelta(hours=4)
+            # KST 기준으로 계산해야 함
+            now = timezone.localtime()
+            stats_now = now - timedelta(hours=4)
             today = stats_now.date()
             week_ago = today - timedelta(days=6)  # 오늘 포함 7일
             
@@ -264,8 +272,8 @@ def grade(request):
                 learning.last_time_revised = timezone.now()  # 마지막 복습 시간 업데이트
                 
                 # StudyLog 생성
-                # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함
-                log_date = (timezone.now() - timedelta(hours=4)).date()
+                # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함 (KST 기준)
+                log_date = (timezone.localtime() - timedelta(hours=4)).date()
                 StudyLog.objects.create(
                     user=user,
                     word=ans_word,
@@ -283,8 +291,8 @@ def grade(request):
                     multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
                     new_learning_term = math.ceil(learning.learning_term * multiplier + 1)
                     # learning_term일 후의 04시로 설정 (4시부터 퀴즈 가능)
-                    # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함
-                    logical_today = (timezone.now() - timedelta(hours=4)).date()
+                    # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함 (KST 기준)
+                    logical_today = (timezone.localtime() - timedelta(hours=4)).date()
                     target_date = logical_today + timedelta(days=new_learning_term)
                     # target_date의 04:00:00으로 설정
                     learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time())) + timedelta(hours=4)
@@ -293,8 +301,8 @@ def grade(request):
                     # 오답일 때: 다음날 즉시 복습
                     learning.wrong_count += 1
                     new_learning_term = 0
-                    # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함
-                    logical_today = (timezone.now() - timedelta(hours=4)).date()
+                    # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함 (KST 기준)
+                    logical_today = (timezone.localtime() - timedelta(hours=4)).date()
                     target_date = logical_today + timedelta(days=new_learning_term)
                     # target_date의 04:00:00으로 설정
                     learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time())) + timedelta(hours=4)
@@ -312,10 +320,17 @@ def grade(request):
                     ans_word.get_word_class_display(),
                 ]
         # 캐시 삭제: index의 정답/오답/통계가 바로 반영되도록
-        cache.delete(f'user_stats_{user.id}')
-        cache.delete(f'user_recent_words_{user.id}')
-        cache.delete(f'user_today_words_{user.id}')
-        cache.delete(f'user_weekly_stats_{user.id}')
+        # 현재 날짜 기준의 키들만 삭제해도 되지만, 안전하게 날짜 접미사가 있는 패턴이지만,
+        # 여기서는 간단히 하기 어려우므로 관련되어 보이는 키 생성 로직을 재사용해야 하나,
+        # 뷰 함수 내라 view의 cache key 로직을 가져와야 함.
+        # 편의상 현재 시간 기준으로 키를 재구성해서 삭제
+        now_kst = timezone.localtime()
+        logical_date_str = (now_kst - timedelta(hours=4)).date().strftime("%Y-%m-%d")
+        
+        cache.delete(f'user_stats_{user.id}_{logical_date_str}')
+        cache.delete(f'user_recent_words_{user.id}_{logical_date_str}')
+        cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
+        cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
         request.session["grade_results"] = results
         return redirect("words:grade")
 
@@ -388,10 +403,12 @@ def add(request):
                             user=user, word=found_word, to_be_revised=to_be_revised
                         )
                         # 관련 캐시 삭제하여 메인 페이지에서 즉시 반영
-                        cache.delete(f'user_stats_{user.id}')
-                        cache.delete(f'user_recent_words_{user.id}')
-                        cache.delete(f'user_today_words_{user.id}')
-                        cache.delete(f'user_weekly_stats_{user.id}')
+                        now_kst = timezone.localtime()
+                        logical_date_str = (now_kst - timedelta(hours=4)).date().strftime("%Y-%m-%d")
+                        cache.delete(f'user_stats_{user.id}_{logical_date_str}')
+                        cache.delete(f'user_recent_words_{user.id}_{logical_date_str}')
+                        cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
+                        cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
                         # 세션에서 added_word 정리
                         request.session.pop("added_word", None)
                         request.session.pop("added_word_class", None)
@@ -453,10 +470,12 @@ def add(request):
                         user=user, word=word_obj, to_be_revised=to_be_revised
                     )
                     # 관련 캐시 삭제하여 메인 페이지에서 즉시 반영
-                    cache.delete(f'user_stats_{user.id}')
-                    cache.delete(f'user_recent_words_{user.id}')
-                    cache.delete(f'user_today_words_{user.id}')
-                    cache.delete(f'user_weekly_stats_{user.id}')
+                    now_kst = timezone.localtime()
+                    logical_date_str = (now_kst - timedelta(hours=4)).date().strftime("%Y-%m-%d")
+                    cache.delete(f'user_stats_{user.id}_{logical_date_str}')
+                    cache.delete(f'user_recent_words_{user.id}_{logical_date_str}')
+                    cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
+                    cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
                     # 세션에서 added_word 정리
                     request.session.pop("added_word", None)
                     request.session.pop("added_word_class", None)
