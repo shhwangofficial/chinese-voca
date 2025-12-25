@@ -520,3 +520,38 @@ def add(request):
 
 
 
+
+@require_http_methods(["GET"])
+def flashcard_list(request):
+    user = request.user
+    if not user.is_authenticated:
+        return redirect("accounts:login")
+
+    # 틀린 횟수가 많은 순서대로 정렬 (내림차순)
+    # 틀린 횟수가 같으면 최근에 등록된 순서로 (id 내림차순)
+    learning_words = LearningWord.objects.filter(user=user).select_related('word').order_by('-wrong_count', '-id')
+
+    if not learning_words.exists():
+        messages.warning(request, "학습 중인 단어가 없습니다.")
+        return redirect("words:index")
+
+    # Serialize data for frontend
+    words_data = []
+    for lw in learning_words:
+        words_data.append({
+            'word': lw.word.word,
+            'pinyin': lw.word.pinyin,
+            'tone': lw.word.tone,
+            'meaning': lw.word.meaning,
+            'word_class': lw.word.get_word_class_display(),
+            'wrong_count': lw.wrong_count,
+            'correct_count': lw.correct_count,
+        })
+    
+    import json
+    from django.core.serializers.json import DjangoJSONEncoder
+    context = {
+        'words_data_json': json.dumps(words_data, cls=DjangoJSONEncoder)
+    }
+    
+    return render(request, "words/flashcard.html", context)
