@@ -523,17 +523,22 @@ def add(request):
 
 @require_http_methods(["GET"])
 def flashcard_list(request):
+    import random
     user = request.user
     if not user.is_authenticated:
         return redirect("accounts:login")
 
-    # 틀린 횟수가 많은 순서대로 정렬 (내림차순)
-    # 틀린 횟수가 같으면 최근에 등록된 순서로 (id 내림차순)
-    learning_words = LearningWord.objects.filter(user=user).select_related('word').order_by('-wrong_count', '-id')
+    # Fetch all learning words for the user
+    # User requested random order, fixed per session (upon entry)
+    # So we fetch all, then shuffle.
+    learning_words_queryset = LearningWord.objects.filter(user=user, wrong_count__gt=0).select_related('word')
 
-    if not learning_words.exists():
+    if not learning_words_queryset.exists():
         messages.warning(request, "학습 중인 단어가 없습니다.")
         return redirect("words:index")
+
+    learning_words = list(learning_words_queryset)
+    random.shuffle(learning_words)
 
     # Serialize data for frontend
     words_data = []

@@ -17,6 +17,25 @@
         padding-top: 1rem;
     }
 
+    .nav-btn {
+        background: white;
+        border: none;
+        width: 56px;
+        height: 56px;
+        min-width: 56px; /* Prevent squashing */
+        min-height: 56px; /* Prevent squashing */
+        flex-shrink: 0;   /* Prevent squashing */
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: #555;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
     .flashcard {
         background-color: #fff;
         border-radius: 20px;
@@ -87,13 +106,42 @@
         }
     }
 
+    /* Pinyin Section Styles */
     .flashcard-pinyin-display {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
         margin-bottom: 2.5rem;
+        cursor: pointer; /* Clickable */
+        min-height: 3rem; /* Reserve space */
+        justify-content: center;
     }
     
+    .flashcard-pinyin-display .pinyin-content {
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .flashcard-pinyin-display.revealed .pinyin-content {
+        visibility: visible;
+        opacity: 1;
+    }
+    
+    .flashcard-pinyin-display .pinyin-hint {
+        font-size: 0.9rem;
+        color: #ccc;
+        position: absolute; /* Overlap */
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .flashcard-pinyin-display.revealed .pinyin-hint {
+        display: none;
+    }
+
+    /* ... Existing styles ... */
+
     .flashcard-pinyin {
         font-size: 2rem;
         color: #555;
@@ -114,6 +162,7 @@
         border-radius: 12px;
         width: 100%;
         position: relative;
+        /* cursor: pointer removed as we use card click now */
     }
     
     .flashcard-meaning {
@@ -160,38 +209,7 @@
         max-width: 500px;
         margin-top: 1rem;
     }
-
-    .nav-btn {
-        background: white;
-        border: none;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        color: #555;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
     
-    .nav-btn:hover:not(:disabled) {
-        transform: scale(1.1);
-        background: #4A90E2;
-        color: white;
-        box-shadow: 0 6px 16px rgba(74, 144, 226, 0.3);
-    }
-    
-    .nav-btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-        box-shadow: none;
-        background: #f1f3f5;
-        color: #ccc;
-    }
-
     .progress-ind {
         font-size: 1.1rem;
         color: #888;
@@ -210,14 +228,20 @@
     
     .slide-in-right { animation: slideInRight 0.3s forwards; }
     .slide-in-left { animation: slideInLeft 0.3s forwards; }
+    
+    /* Home Button Area */
+    .bottom-actions {
+        margin-top: 2rem;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
 
 </style>
 <script>
-    // Updated Pinyin Tone Conversion
+    // ... getPinyinWithTone ... (KEEP EXISTING)
     function getPinyinWithTone(text) {
         if (!text) return "";
-        
-        // Mapping for tone marks
         const toneMarks = {
             'a': ['ā', 'á', 'ǎ', 'à', 'a'],
             'e': ['ē', 'é', 'ě', 'è', 'e'],
@@ -227,27 +251,16 @@
             'v': ['ǖ', 'ǘ', 'ǚ', 'ǜ', 'ü'],
             'ü': ['ǖ', 'ǘ', 'ǚ', 'ǜ', 'ü'],
         };
-        
-        // Regex handles [Letters] + [Optional Space] + [Digit]
-        // Also handles simple v->ü
         return text.replace(/([a-zA-ZüÜvV]+)\s*(\d)/g, function(match, pinyin, toneNum) {
             let tone = parseInt(toneNum);
-            
-            // Handle neutral tone (0 or 5)
-            if (tone === 5 || tone === 0) {
-                 return pinyin.replace(/v/g, 'ü').replace(/V/g, 'Ü');
-            }
+            if (tone === 5 || tone === 0) return pinyin.replace(/v/g, 'ü').replace(/V/g, 'Ü');
             if (tone < 1 || tone > 4) return match; 
-
             let toneIndex = tone - 1;
-
             if (pinyin.toLowerCase().includes('a')) return pinyin.replace(/a/g, toneMarks['a'][toneIndex]).replace(/A/g, toneMarks['a'][toneIndex].toUpperCase());
             if (pinyin.toLowerCase().includes('e')) return pinyin.replace(/e/g, toneMarks['e'][toneIndex]).replace(/E/g, toneMarks['e'][toneIndex].toUpperCase());
             if (pinyin.toLowerCase().includes('o')) return pinyin.replace(/o/g, toneMarks['o'][toneIndex]).replace(/O/g, toneMarks['o'][toneIndex].toUpperCase());
-            
             if (pinyin.toLowerCase().includes('iu')) return pinyin.replace(/u/g, toneMarks['u'][toneIndex]);
             if (pinyin.toLowerCase().includes('ui')) return pinyin.replace(/i/g, toneMarks['i'][toneIndex]);
-            
             const vowels = ['i', 'u', 'v', 'ü', 'I', 'U', 'V', 'Ü'];
             for (let i = pinyin.length - 1; i >= 0; i--) {
                 if (vowels.includes(pinyin[i])) {
@@ -256,7 +269,6 @@
                     return pinyin.substring(0, i) + replacement + pinyin.substring(i+1);
                 }
             }
-            
             return match;
         });
     }
@@ -266,6 +278,9 @@
         let currentIndex = 0;
         
         const cardElement = document.getElementById('flashcard');
+        const pinyinContainer = document.getElementById('pinyin-container');
+        const meaningContainer = document.getElementById('meaning-container');
+        
         const wordEl = document.getElementById('card-word');
         const pinyinEl = document.getElementById('card-pinyin');
         const meaningEl = document.getElementById('card-meaning');
@@ -282,10 +297,16 @@
             totalCountEl.textContent = wordsData.length;
             renderCard(currentIndex);
         }
-
+        
         // Card Click (Reveal)
         cardElement.addEventListener('click', function() {
             cardElement.classList.toggle('revealed');
+        });
+        
+        // Toggle Pinyin
+        pinyinContainer.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent bubbling if card has click
+            pinyinContainer.classList.toggle('revealed');
         });
 
         // Navigation
@@ -327,15 +348,12 @@
             const word = wordsData[index];
             wordEl.textContent = word.word;
             
-            // Robust Pinyin Merging Logic
+            // Pinyin Logic
             let pinyinText = word.pinyin || "";
             let toneText = String(word.tone || "").trim();
-            
             if (!/\d/.test(pinyinText) && toneText) {
-                // Remove extra spaces first
                 const pinyinParts = pinyinText.trim().split(/\s+/);
                 const toneParts = toneText.match(/\d/g) || [];
-                
                 if (pinyinParts.length === toneParts.length) {
                     let merged = [];
                     for (let i = 0; i < pinyinParts.length; i++) {
@@ -346,7 +364,6 @@
                      pinyinText = pinyinText + toneParts[0];
                 }
             }
-            
             pinyinEl.textContent = getPinyinWithTone(pinyinText);
             
             meaningEl.textContent = word.meaning;
@@ -356,6 +373,9 @@
             
             // Reset Reveal State
             cardElement.classList.remove('revealed');
+            pinyinContainer.classList.remove('revealed');
+            // meaningContainer.classList.remove('revealed'); // Not used anymore as we use cardElement
+
             
             // Update Buttons
             btnPrev.disabled = index === 0;
@@ -380,26 +400,27 @@
 {% block content %}
 <div class="container flashcard-container">
     
-    <div style="position: absolute; top: 1rem; left: 1rem;">
-        <a href="{% url 'words:index' %}" class="btn btn-outline-secondary btn-sm" style="border-radius: 20px;">
-            <i class="fas fa-arrow-left me-1"></i> 메인으로
-        </a>
-    </div>
+    <!-- Removed Top Left Button -->
 
     <!-- Central Flashcard -->
     <div id="flashcard" class="flashcard">
         
-        <!-- Word Wrapper for Absolute Positioning of Badge -->
+        <!-- Word Wrapper -->
         <div class="flashcard-word-wrapper">
              <span id="card-word-class" class="flashcard-word-class-badge">Noun</span>
              <div id="card-word" class="flashcard-word">Word</div>
         </div>
         
-        <div class="flashcard-pinyin-display">
-            <div id="card-pinyin" class="flashcard-pinyin">Pinyin</div>
+        <!-- Pinyin Container (Toggleable) -->
+        <div id="pinyin-container" class="flashcard-pinyin-display" title="Click to show Pinyin">
+            <span class="pinyin-hint"><i class="far fa-eye-slash me-1"></i>병음/성조 확인</span>
+            <div class="pinyin-content">
+                <div id="card-pinyin" class="flashcard-pinyin">Pinyin</div>
+            </div>
         </div>
         
-        <div class="flashcard-meaning-container">
+        <!-- Meaning Container (Reverted to standard display) -->
+        <div id="meaning-container" class="flashcard-meaning-container">
             <div id="card-meaning" class="flashcard-meaning">Meaning</div>
             <div class="flashcard-hint-text">
                 <i class="far fa-hand-pointer me-1"></i>클릭해서 의미 확인
@@ -421,6 +442,13 @@
         <button id="btn-next" class="nav-btn">
             <i class="fas fa-chevron-right"></i>
         </button>
+    </div>
+
+    <!-- Home Button (Bottom Center) -->
+    <div class="bottom-actions">
+        <a href="{% url 'words:index' %}" class="btn btn-outline-secondary rounded-pill px-4" style="border-width: 2px; font-weight: 600;">
+            <i class="fas fa-home me-2"></i>홈으로
+        </a>
     </div>
             
 </div>
