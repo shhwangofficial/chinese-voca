@@ -768,16 +768,21 @@
                <p class="text-muted mb-0 small">틀린 단어 집중 복습</p>
             </div>
             <div class="col-md-3 text-md-end mt-2 mt-md-0">
-               <a href="{% url 'words:flashcard_list' %}" class="btn btn-outline-primary w-100" style="border-radius: 12px;">
-                   <i class="fas fa-arrow-right me-2"></i>복습하기
-               </a>
+               {% if total_learning_words > 0 %}
+                   <a href="{% url 'words:flashcard_list' %}" class="btn btn-outline-primary w-100" style="border-radius: 12px;">
+                       <i class="fas fa-arrow-right me-2"></i>복습하기
+                   </a>
+               {% else %}
+                   <div class="d-inline-block rounded-pill px-3 py-2 text-secondary" style="background-color: #f1f3f5; font-size: 0.9rem; word-break: keep-all; font-weight: 500;">
+                       <i class="fas fa-plus-circle me-2 text-muted"></i>먼저 단어를 추가해주세요
+                   </div>
+               {% endif %}
             </div>
           </div>
         </div>
       </div>
     </div>
     
-    {% if today_words %}
       <div class="col-md-6 mb-2">
         <div class="card card-modern">
           <div class="card-body">
@@ -785,6 +790,7 @@
               <i class="fas fa-clock text-warning me-2"></i>
               오늘 복습할 단어
             </h4>
+            {% if today_words %}
             <ul class="list-modern">
               {% for learning_word in today_words %}
                 <li class="list-modern-item">
@@ -810,10 +816,28 @@
                 <small class="text-muted">그 외 {{ today_review_words|add:"-5" }}개의 단어가 더 있습니다.</small>
               </div>
             {% endif %}
+            {% else %}
+               {% if total_learning_words > 0 %}
+                   <div class="text-center py-4">
+                       <div style="font-size: 3rem; margin-bottom: 1rem;">
+                           <i class="fas fa-check-circle text-success" style="opacity: 0.8;"></i>
+                       </div>
+                       <h5 class="fw-bold text-dark mb-2">복습 완료!</h5>
+                       <p class="small text-muted mb-0">오늘 복습할 단어를 모두 학습했습니다.</p>
+                   </div>
+               {% else %}
+                   <div class="text-center py-4">
+                       <div style="font-size: 3rem; margin-bottom: 1rem;">
+                           <i class="fas fa-book-open text-primary" style="opacity: 0.8;"></i>
+                       </div>
+                       <h5 class="fw-bold text-dark mb-2">단어를 추가해주세요</h5>
+                       <p class="small text-muted mb-0" style="word-break: keep-all;">아직 학습 중인 단어가 없습니다.</p>
+                   </div>
+               {% endif %}
+            {% endif %}
           </div>
         </div>
       </div>
-    {% endif %}
     
     {% if recent_words %}
       <div class="col-md-6 mb-2">
@@ -821,7 +845,7 @@
           <div class="card-body">
             <h4 class="card-title mb-3 d-flex align-items-center">
               <i class="fas fa-history text-success me-2"></i>
-              최근 추가한 단어
+              최근 추가한 단어 최신 {{ recent_words|length }}개
             </h4>
             <ul class="list-modern">
               {% for learning_word in recent_words %}
