@@ -117,8 +117,62 @@
         box-shadow: 0 4px 16px rgba(74,144,226,0.18);
         color: #fff;
     }
-    
-    /* 현대적 카드 스타일 */
+    /* 현대적 버튼 공통 스타일 */
+    .btn-base-modern {
+        border: none;
+        border-radius: 14px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #fff;
+        height: 48px;
+        width: 180px; /* 고정 너비 */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        white-space: nowrap;
+    }
+    .btn-base-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        color: #fff;
+    }
+
+    /* 퀴즈 버튼 (Green-ish) */
+    .btn-quiz {
+        background: linear-gradient(135deg, #42d392 0%, #647eff 100%);
+    }
+    .btn-quiz:hover {
+        box-shadow: 0 8px 25px rgba(66, 211, 146, 0.3);
+    }
+
+    /* 플래시카드 버튼 (Purple-ish) */
+    .btn-flashcard {
+        background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);
+    }
+    .btn-flashcard:hover {
+        box-shadow: 0 8px 25px rgba(142, 45, 226, 0.4);
+    }
+
+    /* 뱃지 스타일 (Soft & Harmonious) */
+    .badge-modern-glow {
+        background: #f8f0fc; /* 아주 연한 보라색 배경 */
+        color: #6a1b9a;      /* 진한 보라색 텍스트 */
+        padding: 0.5em 1.2em;
+        border-radius: 30px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        border: 1px solid #e1bee7;
+        box-shadow: 0 2px 5px rgba(106, 27, 154, 0.05); /* 은은한 그림자 */
+        vertical-align: middle;
+        text-shadow: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 3.5rem;
+    }
     .card-modern {
         border: none;
         border-radius: 18px;
@@ -722,30 +776,34 @@
     <div class="col-12 mb-2">
       <div class="card quiz-modern-card">
         <div class="card-body">
-          <div class="quiz-header-row">
-            <div class="quiz-header-left">
-              <div class="quiz-icon">
+          <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
+            <div class="d-flex align-items-center mb-3 mb-md-0">
+              <div class="quiz-icon me-3">
                 <i class="fas fa-question-circle"></i>
               </div>
-              <h3>오늘의 퀴즈</h3>
-              {% if today_review_words > 0 %}
-                  <span class="badge bg-primary rounded-pill ms-2" style="font-size: 0.9rem; padding: 0.5em 0.8em;">{{ today_review_words }}개</span>
-              {% endif %}
+              <h3 class="mb-0">오늘의 퀴즈</h3>
             </div>
+            
+            <div class="flex-grow-1 d-flex justify-content-center mb-3 mb-md-0">
+               {% if today_review_words > 0 %}
+                   <span class="badge-modern-glow">오늘 복습할 단어: {{ today_review_words }}개</span>
+               {% endif %}
+            </div>
+
             {% if total_learning_words == 0 %}
-              <div class="w-100 text-center mt-3">
-                <div class="alert alert-info alert-custom">학습 중인 단어가 없습니다. 먼저 단어를 추가해보세요.</div>
+              <div class="w-100 text-center mt-2 mt-md-0">
+                <div class="alert alert-info alert-custom mb-0">학습 중인 단어가 없습니다. 먼저 단어를 추가해보세요.</div>
               </div>
             {% elif today_review_words == 0 %}
-              <div class="w-100 text-center mt-3">
-                <div class="alert alert-info alert-custom">오늘 복습할 단어가 더이상 없습니다. 내일 다시 시도해보세요.</div>
+              <div class="w-100 text-center mt-2 mt-md-0">
+                <div class="alert alert-info alert-custom mb-0">오늘 복습할 단어가 더이상 없습니다. 내일 다시 시도해보세요.</div>
               </div>
             {% else %}
-              <div class="quiz-header-right">
+              <div>
                 <form action="{% url 'words:quiz' %}"
                       method="get"
                       class="quiz-header-form">
-                  <button type="submit" class="btn quiz-btn-modern btn-wide">
+                  <button type="submit" class="btn-base-modern btn-flashcard">
                      <i class="fas fa-play me-2"></i>퀴즈 시작
                    </button>
                 </form>
@@ -769,7 +827,7 @@
             </div>
             <div class="col-md-5 text-md-end mt-2 mt-md-0">
                {% if total_learning_words > 0 %}
-                   <a href="{% url 'words:flashcard_list' %}" class="btn btn-outline-primary w-100" style="border-radius: 12px;">
+                   <a href="{% url 'words:flashcard_list' %}" class="btn-base-modern btn-quiz">
                        <i class="fas fa-arrow-right me-2"></i>복습하기
                    </a>
                {% else %}
