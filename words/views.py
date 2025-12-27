@@ -184,184 +184,173 @@ def index(request):
 
 @require_http_methods(["GET"])
 def quiz(request):
+    import json
+    from django.core.serializers.json import DjangoJSONEncoder
+    
     user = request.user
     
-    # 오답만 다시 출제: retry_pks가 있으면 해당 단어만 출제
-    retry_pks = request.GET.getlist("retry_pks")
-    if retry_pks:
-        words = Word.objects.filter(pk__in=retry_pks)
-        if not words:
-            messages.info(request, "틀린 문제가 없습니다. 모두 정답입니다!")
-            return redirect("words:index")
-        context = {"words": words}
-        response = render(request, "words/quiz.html", context)
-        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response['Pragma'] = 'no-cache'
-        response['Expires'] = '0'
-        return response
-
     # 학습 중인 단어가 0개인지 확인
     total_learning_words = user.learning.count()
     if total_learning_words == 0:
         messages.warning(request, "학습 중인 단어가 없습니다. 먼저 단어를 추가해주세요.")
         return redirect("words:index")
     
-    # 퀴즈 문제 수 처리 - 기본값 5로 설정
-    try:
-        num_quiz = int(request.GET.get("num_quiz", 5))
-    except (TypeError, ValueError):
-        num_quiz = 5
-    
-    # 문제 수가 0 이하이거나 20을 초과하면 기본값 5로 설정
-    if num_quiz <= 0 or num_quiz > 20:
-        num_quiz = 5
-    
+    # 퀴즈 문제 수 처리 - 입력값 무시하고 전체 출제 (랜덤)
     # 항상 fresh하게 DB에서 문제를 뽑아옴 (캐시 사용 안함)
-    # 랜덤 순서로 퀴즈 문제 출제
-    words = user.learning.filter(
-        learningword__to_be_revised__lt=timezone.now()
-    ).order_by("?")[:num_quiz]
+    # 오늘 복습해야 할 단어 전체 (to_be_revised <= now)
     
-    # 복습할 단어가 없으면 알림
-    if not words:
+    # KST 기준 '오늘'의 범위 등을 고려해야 하지만, 
+    # to_be_revised 필드 자체가 '언제부터 복습 가능'을 나타내므로
+    # 단순히 현재 시간보다 이전인 것을 가져오면 됨
+    
+    quiz_queryset = user.learningword_set.filter(
+        to_be_revised__lt=timezone.now()
+    ).select_related('word').order_by("?")
+    
+    # 만약 복습할게 없으면? 
+    if not quiz_queryset.exists():
         messages.info(request, "오늘 복습할 단어가 없습니다. 내일 다시 시도해보세요.")
         return redirect("words:index")
-    
-    context = {"words": words}
-    response = render(request, "words/quiz.html", context)
-    # 캐시 방지 헤더 추가
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
-    return response
-
-
-@require_http_methods(["GET", "POST"])
-def grade(request):
-    user = request.user
-    if request.method == "POST":
-        results = {}
-        for key in request.POST:
-            if key.startswith("quizno_"):
-                pk = key.split("_")[1]
-                try:
-                    ans_word = Word.objects.get(pk=pk)
-                except Word.DoesNotExist:
-                    continue
-
-                quiz_no = request.POST.get(f"quizno_{pk}", "").strip()
-                user_pinyin = request.POST.get(f"pinyin_{pk}", "").strip()
-                user_tone = request.POST.get(f"tone_{pk}", "").strip()
-                user_meaning = request.POST.get(f"meaning_{pk}", "").strip()
-
-                # 병음과 의미의 공백 정규화 (여러 공백을 하나로, 앞뒤 공백 제거)
-                user_pinyin_normalized = re.sub(r'\s+', ' ', user_pinyin).strip()
-                user_meaning_normalized = re.sub(r'\s+', ' ', user_meaning).strip()
-                ans_pinyin_normalized = re.sub(r'\s+', ' ', ans_word.pinyin).strip()
-                ans_meaning_normalized = re.sub(r'\s+', ' ', ans_word.meaning).strip()
-
-                is_correct = (
-                    user_pinyin_normalized == ans_pinyin_normalized
-                    and
-                    # user_tone == ans_word.tone and
-                    user_meaning_normalized == ans_meaning_normalized
-                )
-
-                learning = LearningWord.objects.get(user=user, word=ans_word)
-                learning.no_of_revision += 1
-                learning.last_time_revised = timezone.now()  # 마지막 복습 시간 업데이트
-                
-                # StudyLog 생성
-                # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함 (KST 기준)
-                log_date = (timezone.localtime() - timedelta(hours=4)).date()
-                StudyLog.objects.create(
-                    user=user,
-                    word=ans_word,
-                    is_correct=is_correct,
-                    date=log_date
-                )
-
-                if is_correct:
-                    # 정답일 때: 틀린 횟수에 따라 승수를 2→1.5로 점진적으로 낮추는 로지스틱형 보정
-                    # m = c + (2 - c) / (1 + wrong_count), 여기서 c는 1.5로 고정
-                    updated_wrong = learning.wrong_count
-                    learning.correct_count += 1
-                    
-                    base_multiplier = 1.5
-                    multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
-                    new_learning_term = math.ceil(learning.learning_term * multiplier + 1)
-                    # learning_term일 후의 04시로 설정 (4시부터 퀴즈 가능)
-                    # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함 (KST 기준)
-                    logical_today = (timezone.localtime() - timedelta(hours=4)).date()
-                    target_date = logical_today + timedelta(days=new_learning_term)
-                    # target_date의 04:00:00으로 설정
-                    learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time())) + timedelta(hours=4)
-                    learning.learning_term = new_learning_term
-                else:
-                    # 오답일 때: 다음날 즉시 복습
-                    learning.wrong_count += 1
-                    new_learning_term = 0
-                    # 현재 시간에서 4시간을 빼서 "논리적 오늘"을 구함 (KST 기준)
-                    logical_today = (timezone.localtime() - timedelta(hours=4)).date()
-                    target_date = logical_today + timedelta(days=new_learning_term)
-                    # target_date의 04:00:00으로 설정
-                    learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time())) + timedelta(hours=4)
-                    learning.learning_term = new_learning_term
-                
-                learning.save()
-
-                # results의 key를 Word의 pk(정수)로 저장
-                results[str(ans_word.pk)] = [
-                    is_correct,
-                    ans_word.word,
-                    [ans_word.pinyin, ans_word.tone, ans_word.meaning],
-                    [user_pinyin, user_tone, user_meaning],
-                    "",
-                    ans_word.get_word_class_display(),
-                ]
-        # 캐시 삭제: index의 정답/오답/통계가 바로 반영되도록
-        # 현재 날짜 기준의 키들만 삭제해도 되지만, 안전하게 날짜 접미사가 있는 패턴이지만,
-        # 여기서는 간단히 하기 어려우므로 관련되어 보이는 키 생성 로직을 재사용해야 하나,
-        # 뷰 함수 내라 view의 cache key 로직을 가져와야 함.
-        # 편의상 현재 시간 기준으로 키를 재구성해서 삭제
-        now_kst = timezone.localtime()
-        logical_date_str = (now_kst - timedelta(hours=4)).date().strftime("%Y-%m-%d")
         
-        cache.delete(f'user_stats_{user.id}_{logical_date_str}')
-        cache.delete(f'user_recent_words_{user.id}_{logical_date_str}')
-        cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
-        cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
-        request.session["grade_results"] = results
-        return redirect("words:grade")
-
-    results = request.session.pop("grade_results", None)  # 사용 후 삭제
-    
-    # 결과 통계 계산
-    if results:
-        total_questions = len(results)
-        correct_count = sum(1 for data in results.values() if data[0])
-        wrong_count = total_questions - correct_count
-        accuracy_rate = round((correct_count / total_questions) * 100) if total_questions > 0 else 0
-    else:
-        total_questions = 0
-        correct_count = 0
-        wrong_count = 0
-        accuracy_rate = 0
+    # Serialize for Frontend SPA
+    words_data = []
+    for lw in quiz_queryset:
+        # Pinyin tone normalization for display if needed? 
+        # Actually we just pass raw, frontend handles input
+        words_data.append({
+            'id': lw.word.id,
+            'word': lw.word.word,
+            'pinyin': lw.word.pinyin,
+            'tone': lw.word.tone,
+            'meaning': lw.word.meaning,
+            'meaning_length': lw.word.meaning_length,
+            'word_class': lw.word.get_word_class_display(),
+        })
     
     context = {
-        "results": results,
-        "total_questions": total_questions,
-        "correct_count": correct_count,
-        "wrong_count": wrong_count,
-        "accuracy_rate": accuracy_rate,
+        "words_data_json": json.dumps(words_data, cls=DjangoJSONEncoder)
     }
     
-    response = render(request, "words/result.html", context)
-    # 캐시 방지 헤더 추가
+    response = render(request, "words/quiz.html", context)
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
     return response
+
+
+@require_http_methods(["POST"])
+def api_grade_word(request):
+    import json
+    from django.http import JsonResponse
+    
+    user = request.user
+    if not user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Login required'}, status=401)
+        
+    try:
+        data = json.loads(request.body)
+        word_id = data.get('word_id')
+        user_pinyin = data.get('pinyin', '').strip()
+        user_meaning = data.get('meaning', '').strip()
+    except:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+        
+    try:
+        ans_word = Word.objects.get(pk=word_id)
+        learning = LearningWord.objects.get(user=user, word=ans_word)
+    except (Word.DoesNotExist, LearningWord.DoesNotExist):
+        return JsonResponse({'status': 'error', 'message': 'Word not found'}, status=404)
+
+    # 병음과 의미의 공백 정규화
+    user_pinyin_normalized = re.sub(r'\s+', ' ', user_pinyin).strip().lower()
+    user_meaning_normalized = re.sub(r'\s+', ' ', user_meaning).strip()
+    ans_pinyin_normalized = re.sub(r'\s+', ' ', ans_word.pinyin).strip().lower()
+    
+    # 의미 정답 처리 로직
+    ans_meaning_normalized = re.sub(r'\s+', ' ', ans_word.meaning).strip()
+
+    is_correct_pinyin = (user_pinyin_normalized == ans_pinyin_normalized)
+    is_correct_meaning = (user_meaning_normalized == ans_meaning_normalized)
+    
+    is_correct = is_correct_pinyin and is_correct_meaning
+
+    if is_correct:
+        learning.no_of_revision += 1
+        learning.last_time_revised = timezone.now()
+        
+        # StudyLog (KST -4h offset logic)
+        log_date = (timezone.localtime() - timedelta(hours=4)).date()
+        StudyLog.objects.create(
+            user=user,
+            word=ans_word,
+            is_correct=True,
+            date=log_date
+        )
+        
+        # Correct Logic (Logistic Correction)
+        updated_wrong = learning.wrong_count
+        learning.correct_count += 1
+        
+        base_multiplier = 1.5
+        multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
+        new_learning_term = math.ceil(learning.learning_term * multiplier + 1)
+        
+        logical_today = (timezone.localtime() - timedelta(hours=4)).date()
+        target_date = logical_today + timedelta(days=new_learning_term)
+        learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time())) + timedelta(hours=4)
+        learning.learning_term = new_learning_term
+        learning.save()
+        
+        # Cache Invalidation (Update Homepage Stats)
+        now_kst = timezone.localtime()
+        logical_date_str = (now_kst - timedelta(hours=4)).date().strftime("%Y-%m-%d")
+        cache.delete(f'user_stats_{user.id}_{logical_date_str}')
+        cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
+        cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
+        
+        return JsonResponse({
+            'status': 'success',
+            'is_correct': True,
+            'message': 'Correct!'
+        })
+        
+    else:
+        # 틀림
+        learning.no_of_revision += 1
+        learning.last_time_revised = timezone.now()
+        
+        log_date = (timezone.localtime() - timedelta(hours=4)).date()
+        StudyLog.objects.create(
+            user=user,
+            word=ans_word,
+            is_correct=False,
+            date=log_date
+        )
+        
+        # 틀렸을 때의 패널티
+        learning.wrong_count += 1
+        learning.learning_term = max(1, math.ceil(learning.learning_term * 0.7)) 
+        learning.to_be_revised = timezone.now() # 복습 시간은 현재로
+        learning.save()
+        
+        # Cache Invalidation
+        now_kst = timezone.localtime()
+        logical_date_str = (now_kst - timedelta(hours=4)).date().strftime("%Y-%m-%d")
+        cache.delete(f'user_stats_{user.id}_{logical_date_str}')
+        cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
+        cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
+        
+        return JsonResponse({
+            'status': 'success',
+            'is_correct': False,
+            'correct_pinyin': ans_word.pinyin,
+            'correct_meaning': ans_word.meaning,
+            'word_tone': ans_word.tone,
+             # Return answer details for UI feedback
+             'word': ans_word.word,
+             'is_correct': False
+        })
+
 
 
 @require_http_methods(["GET", "POST"])

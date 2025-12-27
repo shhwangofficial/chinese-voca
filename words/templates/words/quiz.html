@@ -1,458 +1,649 @@
 {% extends "base.html" %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'words/css/inputs.css' %}">
+
 {% block title %}
-  퀴즈 - 중국어 단어장
+  오늘의 퀴즈 - 중국어 단어장
 {% endblock title %}
+
 {% block head %}
-  <style>
+<style>
     .quiz-container {
-        max-width: 800px;
-        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        max-width: 700px;
         margin: 0 auto;
-        padding-left: 2rem;
-        padding-right: 2rem;
-        box-sizing: border-box;
-        overflow-x: hidden;
+        padding: 1rem;
     }
-    
-    .quiz-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: var(--border-radius);
-        padding: 2rem;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    
-    .quiz-progress {
-        background: rgba(255, 255, 255, 0.2);
+
+    .quiz-card {
+        background: white;
         border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        padding: 3rem 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        border: 4px solid transparent; /* Initial border */
+    }
+    
+    .quiz-card.correct {
+        border-color: #2ecc71;
+        box-shadow: 0 10px 40px rgba(46, 204, 113, 0.2);
+    }
+    
+    .quiz-card.wrong {
+        border-color: #e74c3c;
+        box-shadow: 0 10px 40px rgba(231, 76, 60, 0.2);
+    }
+
+    .progress-bar-container {
+        width: 100%;
         height: 8px;
-        margin: 1rem 0;
+        background-color: #f1f3f5;
+        border-radius: 4px;
+        margin-bottom: 2rem;
         overflow: hidden;
     }
-    
-    .quiz-progress-bar {
-        background: rgba(255, 255, 255, 0.8);
+
+    .progress-bar-fill {
         height: 100%;
+        background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
         width: 0%;
         transition: width 0.3s ease;
     }
-    
-    .quiz-item {
-        background: white;
-        border-radius: var(--border-radius);
-        box-shadow: var(--box-shadow);
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-        transition: var(--transition);
-        width: 100%;
-        box-sizing: border-box;
-    }
-    
-    .quiz-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-    }
-    
+
     .word-display {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    
-    .word-text {
-        font-size: 3rem;
-        font-weight: 700;
-        color: var(--dark-color);
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #2c3e50;
         margin-bottom: 0.5rem;
+        line-height: 1.2;
     }
     
-    .word-suffix {
-        font-size: 1.2rem;
-        color: var(--secondary-color);
-        font-weight: 500;
+    /* Word Info */
+    .word-info-container {
+        margin-bottom: 3rem;
+        position: relative;
     }
     
-    .word-class-badge {
+    .badge-custom {
         display: inline-block;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 0.3rem 0.8rem;
-        border-radius: 15px;
-        font-size: 0.9rem;
+        padding: 0.4rem 1rem;
+        font-size: 0.95rem;
         font-weight: 600;
-        margin: 0.5rem 0;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        color: #fff;
+        background-color: #8e44ad; /* Purple shade from image */
+        border-radius: 20px;
+        margin-top: 0.5rem;
+        box-shadow: 0 4px 6px rgba(142, 68, 173, 0.2);
     }
-    
-    .input-group-custom {
-        margin-bottom: 1.5rem;
-    }
-    
-    .input-group-custom label {
-        font-weight: 500;
-        color: var(--dark-color);
-        margin-bottom: 0.5rem;
-        display: block;
-    }
-    
-    .input-group-custom input,
-    .input-group-custom textarea,
-    .input-group-custom select {
+
+    /* Input Grid */
+    .input-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
         width: 100%;
-        padding: 0.75rem 1rem;
-        border: 2px solid #E9ECEF;
-        border-radius: var(--border-radius);
-        font-size: 1rem;
-        transition: var(--transition);
+        margin-bottom: 2rem;
+        align-items: center; 
     }
-    
-    .input-group-custom input:focus,
-    .input-group-custom textarea:focus,
-    .input-group-custom select:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
-    }
-    
+
     .input-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative; /* Key for absolute label */
+        width: auto; /* Let it shrink to content */
+    }
+
+    .row-label {
+        position: absolute;
+        right: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-right: 2rem; /* Spacing from input */
+        font-weight: 700;
+        font-size: 1rem;
+        color: #2c3e50;
+        white-space: nowrap;
+    }
+
+    .row-inputs {
+        display: flex;
+        gap: 0.8rem;
+        justify-content: center;
+    }
+
+    .input-box-style {
+        width: 100px;
+        height: 55px; 
+        text-align: center;
+        font-size: 1.3rem; 
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        outline: none;
+        background: white;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
-    .submit-section {
-        text-align: center;
+    /* Wrapper to align 60px tone box with 100px pinyin input */
+    .tone-wrapper {
+        width: 100px; /* Match input width */
+        height: 40px; /* Match tone height */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Tone Display specific */
+    .tone-display {
+        width: 60px; 
+        height: 40px; 
+        background-color: #f1f3f5;
+        color: #495057;
+        font-weight: 700;
+        font-size: 1.4rem;
+        border-radius: 12px;
+        border: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+        background-color: #f1f3f5;
+        color: #495057;
+        font-weight: 700;
+        font-size: 1.4rem;
+        border-radius: 12px;
+        border: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .tone-select {
+        /* Not used currently but kept for safe measures or if reverted */
+        display: none; 
+    }
+    
+    .pinyin-input {
+        background-color: #fff;
+    }
+    
+    .input-box-style:focus {
+        border-color: #4facfe;
+        box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+    }
+    
+    .meaning-label-row {
+        text-align: left;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .meaning-input {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    
+    /* Center alignment container tweak */
+    .quiz-form-container {
+        max-width: 500px;
+        margin: 0 auto;
+        text-align: left;
+    }
+
+    /* Word info spacing */
+    /* Moved up */
+
+    /* Buttons */
+    .btn-action {
+        width: 100%;
+        height: 60px; /* Fixed height for consistent vertical align */
+        padding: 0;   /* Use flex for centering */
+        font-size: 1.2rem;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        font-weight: 700;
+        color: white;
+        transition: all 0.2s;
         margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 2px solid #E9ECEF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .btn-submit {
-        background: linear-gradient(135deg, var(--success-color), #6BCB1A);
-        color: white;
-        border: none;
-        padding: 1rem 3rem;
-        border-radius: var(--border-radius);
-        font-size: 1.2rem;
-        font-weight: 600;
-        transition: var(--transition);
-        box-shadow: var(--box-shadow);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
     
-    .btn-submit:hover {
-        background: linear-gradient(135deg, #6BCB1A, var(--success-color));
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(126, 211, 33, 0.3);
-        color: white;
+    .btn-next {
+        background: #2c3e50;
+        display: none; 
     }
     
-    .quiz-instructions {
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: var(--border-radius);
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        border-left: 4px solid var(--primary-color);
+    .btn-action:active {
+        transform: scale(0.98);
     }
     
-    @media (max-width: 768px) {
-        .quiz-container {
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-        .input-row {
-            grid-template-columns: 1fr;
-        }
-        .word-text {
-            font-size: 2.5rem;
-        }
-        .quiz-item {
-            padding: 1.5rem;
-        }
+    .correct-answer-display {
+        background: #fdf2f2;
+        color: #c0392b;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        display: none;
+        text-align: left;
     }
     
-    .input-group-fullwidth {
-      width: 100%;
+    .correct-answer-display.success-mode {
+         background: #d4edda;
+         color: #155724;
     }
-    /* add.html의 성조 드롭다운 스타일 추가 */
-    select.form-select-sm {
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        background: none;
-        background-color: #fff;
-        border: 1.5px solid #E9ECEF;
-        box-shadow: none;
-        padding: 0 0.2em;
-        height: 1.1em;
-        min-height: 0;
-        line-height: 1;
-        font-size: 1.05rem;
-        box-sizing: border-box;
-        border-radius: 0;
-        vertical-align: middle;
+
+    /* Completion Screen */
+    .completion-screen {
+        display: none;
+        text-align: center;
     }
-    select.form-select-sm option {
-        font-size: 1.05rem;
+    .completion-screen.visible {
+        display: block;
     }
-    select.form-select-sm:focus {
-        border-color: #4A90E2;
-        outline: none;
-        box-shadow: 0 0 0 0.15rem rgba(74, 144, 226, 0.13);
-    }
-    .custom-select {
-        height: 1.5em !important;
-        padding: 0.5em 0 0 0 !important;
-        line-height: 0.8 !important;
-        font-size: 4rem;
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        background-color: white;
-        border: 1px solid #ccc;
-    }
-    .custom-select.tone-readonly:disabled {
-        opacity: 1;
-        background-color: #f5f7fa;
-        color: #4a4f5b;
-        border-color: #d0d7e2;
-        border-radius: 12px;
-        cursor: not-allowed;
-    }
-  </style>
+
+</style>
 {% endblock head %}
+
 {% block content %}
-  <div class="quiz-container">
-    <!-- 퀴즈 헤더 -->
-    <div class="quiz-header">
-      <h1 class="mb-3">
-        <i class="fas fa-question-circle me-3"></i>
-        오늘의 퀴즈
-      </h1>
-      <p class="lead mb-3">총 {{ words|length }}문제를 풀어보세요!</p>
-      <div class="quiz-progress">
-        <div class="quiz-progress-bar" id="progressBar"></div>
-      </div>
-    </div>
-    <!-- 퀴즈 안내 -->
-    <div class="quiz-instructions">
-      <h5>
-        <i class="fas fa-info-circle text-primary me-2"></i>퀴즈 안내
-      </h5>
-      <ul class="mb-0">
-        <li>중국어 단어를 보고 병음과 의미를 입력해주세요</li>
-        <li>성조는 미리 제공됩니다</li>
-        <li>모든 문제를 풀고 제출 버튼을 눌러주세요</li>
-      </ul>
-    </div>
-    <!-- 퀴즈 폼 -->
-    <form action="{% url 'words:grade' %}"
-          method="post"
-          autocomplete="off"
-          id="quizForm">
-      {% csrf_token %}
-      {% for word in words %}
-        <div class="quiz-item">
-          <input type="hidden"
-                 name="quizno_{{ word.pk }}"
-                 value="{{ forloop.counter }}">
-          <!-- 단어 표시 -->
-          <div class="word-display">
-            <div class="word-text">{{ word.word }}</div>
-            <div class="word-class-badge">{{ word.get_word_class_display }}</div>
-            {% if word.suffix %}<div class="word-suffix">{{ word.suffix }}</div>{% endif %}
-          </div>
-          <!-- 입력 필드들 -->
-          <div class="input-row">
-            <div class="input-group-custom input-group-fullwidth">
-              <div id="dynamic-pinyin-tone-{{ word.pk }}"></div>
-              <input type="hidden"
-                     name="pinyin_{{ word.pk }}"
-                     id="hidden-pinyin-{{ word.pk }}"
-                     required>
-              <input type="hidden"
-                     name="tone_{{ word.pk }}"
-                     id="hidden-tone-{{ word.pk }}"
-                     value="{{ word.tone }}">
-            </div>
-          </div>
-          <div class="input-group-custom">
-            <label for="meaning_{{ word.pk }}">
-              <i class="fas fa-language me-1"></i>의미
-            </label>
-            <input type="text"
-                   name="meaning_{{ word.pk }}"
-                   id="meaning_{{ word.pk }}"
-                   placeholder="단어의 의미를 입력하세요{% if word.meaning_length %} (길이 {{ word.meaning_length }}){% endif %}"
-                   required>
-          </div>
-        </div>
-      {% endfor %}
-      <!-- 제출 섹션 -->
-      <div class="submit-section">
-        <button type="submit" class="btn-submit">
-          <i class="fas fa-paper-plane me-2"></i>
-          퀴즈 제출하기
-        </button>
-      </div>
-    </form>
-  </div>
-  <script>
-// 진행률 표시 및 폼 스타일링
-document.addEventListener('DOMContentLoaded', function() {
-    const progressBar = document.getElementById('progressBar');
-    const inputs = document.querySelectorAll('input[type="text"]');
-    const totalInputs = inputs.length;
+<div class="quiz-container">
     
-    // 모든 input에 form-control-custom 클래스 추가
-    inputs.forEach(input => {
-        input.classList.add('form-control-custom');
+    <!-- Quiz Card -->
+    <div id="quiz-card" class="quiz-card">
+        <!-- Progress -->
+        <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <div class="text-end text-muted mb-2 small">
+            <span id="current-count">1</span> / <span id="total-count">0</span>
+        </div>
+
+        <!-- Word -->
+        <div class="word-info-container">
+            <div id="word-display" class="word-display">Word</div>
+            <div id="word-class-badge" class="badge-custom">Class</div>
+        </div>
+
+        <!-- Inputs -->
+        <div class="quiz-form-container">
+            <form id="quiz-form" autocomplete="off">
+                <div class="input-grid">
+                    <!-- Tone Row -->
+                    <div class="input-row">
+                        <div class="row-label">성조</div>
+                        <div id="tone-container" class="row-inputs">
+                            <!-- Injected JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Pinyin Row -->
+                    <div class="input-row">
+                        <div class="row-label">병음</div>
+                        <div id="pinyin-container" class="row-inputs">
+                            <!-- Injected JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Meaning -->
+                <div class="mb-3">
+                    <div class="meaning-label-row">
+                        <i class="fas fa-language"></i> 의미
+                    </div>
+                    <input type="text" id="input-meaning" class="meaning-input" placeholder="의미를 입력하세요" required>
+                </div>
+                
+                <!-- Result Display -->
+                <div id="correct-answer-box" class="correct-answer-display">
+                    <!-- Filled via JS -->
+                </div>
+
+                <button type="submit" id="btn-submit" class="btn-action btn-submit">제출하기</button>
+                <button type="button" id="btn-next" class="btn-action btn-next">다음 단어</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Completion Screen -->
+    <div id="completion-screen" class="completion-screen">
+        <div class="card p-5 shadow-sm border-0" style="border-radius: 20px;">
+            <div class="text-success mb-4" style="font-size: 4rem;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 class="mb-3 font-weight-bold">모든 퀴즈 완료!</h2>
+            <p class="text-muted mb-4">오늘의 복습을 훌륭하게 마치셨습니다.</p>
+            <a href="{% url 'words:index' %}" class="btn btn-primary btn-lg rounded-pill px-5">
+                메인으로 돌아가기
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Data from Backend
+    const initialWords = JSON.parse('{{ words_data_json|escapejs }}');
+    
+    // Helper Maps (Moved to top to avoid ReferenceError)
+    const toneMarkMap = {'1': 'ˉ', '2': 'ˊ', '3': 'ˇ', '4': 'ˋ', '5': '˙'};
+    
+    // State
+    let quizQueue = [...initialWords]; 
+    let initialTotal = initialWords.length;
+    let completedCount = 0; 
+    let isReviewMode = false; // "Next" button state
+    
+    // DOM Elements
+    const quizCard = document.getElementById('quiz-card');
+    const completionScreen = document.getElementById('completion-screen');
+    
+    const wordDisplay = document.getElementById('word-display');
+    const wordClassBadge = document.getElementById('word-class-badge');
+    const pinyinContainer = document.getElementById('pinyin-container');
+    const toneContainer = document.getElementById('tone-container');
+    const inputMeaning = document.getElementById('input-meaning');
+    const correctAnswerBox = document.getElementById('correct-answer-box');
+    
+    const btnSubmit = document.getElementById('btn-submit');
+    const btnNext = document.getElementById('btn-next');
+    const quizForm = document.getElementById('quiz-form');
+    
+    const progressBar = document.getElementById('progress-bar');
+    const currentCountEl = document.getElementById('current-count');
+    const totalCountEl = document.getElementById('total-count');
+
+    // Init
+    totalCountEl.textContent = initialTotal;
+    updateProgress();
+    
+    if (quizQueue.length > 0) {
+        renderQuestion();
+    } else {
+        showCompletion();
+    }
+
+    // Handlers
+    quizForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!isReviewMode) {
+            submitAnswer();
+        }
+    });
+
+    btnNext.addEventListener('click', function() {
+        if (isReviewMode) {
+            nextQuestion();
+        }
     });
     
-    function updateProgress() {
-        const filledInputs = Array.from(inputs).filter(input => input.value.trim() !== '').length;
-        const progress = (filledInputs / totalInputs) * 100;
-        progressBar.style.width = progress + '%';
+    // Helper Maps (Moved to top)
+
+    function renderQuestion() {
+        try {
+            if (quizQueue.length === 0) {
+                showCompletion();
+                return;
+            }
+    
+            // Reset State
+            isReviewMode = false;
+            quizCard.className = 'quiz-card'; // remove correct/wrong
+            btnSubmit.style.display = 'flex'; // Changed to flex for centering
+            btnNext.style.display = 'none';
+            correctAnswerBox.style.display = 'none';
+            correctAnswerBox.classList.remove('success-mode');
+            
+            const word = quizQueue[0];
+            wordDisplay.textContent = word.word;
+            wordClassBadge.textContent = word.word_class;
+            
+            // Containers Check
+            if (!pinyinContainer || !toneContainer) {
+                console.error("Containers missing");
+                return;
+            }
+            
+            // Parse Tone
+            // Safety: ensure string
+            const toneStr = String(word.tone || "");
+            // Fix: Split by comma OR space, and filter empty
+            const correctTones = toneStr.trim().split(/[\s,]+/).filter(t => t);
+            
+            // Render Pinyin Inputs & Tone Displays
+            // Safety: ensure pinyin is string
+            const pinyinStr = String(word.pinyin || "").trim();
+            if (!pinyinStr) {
+                // If no pinyin, just empty
+                pinyinContainer.innerHTML = '<div class="text-danger">데이터 오류: 병음 없음</div>';
+                toneContainer.innerHTML = '';
+                return;
+            }
+            
+            const syllables = pinyinStr.split(/\s+/);
+            pinyinContainer.innerHTML = '';
+            toneContainer.innerHTML = '';
+            
+            syllables.forEach((syl, index) => {
+                // Tone Display (Pre-filled)
+                // Use a wrapper to enforce 100px width for alignment with Pinyin inputs
+                const tWrapper = document.createElement('div');
+                tWrapper.className = 'tone-wrapper';
+                
+                const tDiv = document.createElement('div');
+                tDiv.className = 'tone-display';
+                
+                // Get correct tone for this syllable
+                let toneNum = (index < correctTones.length) ? correctTones[index] : '';
+                
+                // Display Mark if possible, else Number
+                let displayChar = toneMarkMap[toneNum] || toneNum || '-';
+                tDiv.textContent = displayChar;
+                tDiv.dataset.tone = toneNum; 
+                
+                tWrapper.appendChild(tDiv);
+                toneContainer.appendChild(tWrapper);
+                
+                // Pinyin Input
+                const pInput = document.createElement('input');
+                pInput.type = 'text';
+                pInput.className = 'pinyin-input input-box-style';
+                pInput.dataset.index = index;
+                pInput.placeholder = `병음${index+1}`;
+                pInput.required = true;
+                
+                if (index === 0) setTimeout(() => pInput.focus(), 100);
+                
+                pinyinContainer.appendChild(pInput);
+            });
+    
+            // Meaning Hint
+            const mLen = word.meaning_length || 0;
+            inputMeaning.value = '';
+            inputMeaning.placeholder = mLen > 0 ? `단어의 의미를 입력하세요 (길이 ${mLen})` : '단어의 의미를 입력하세요';
+            
+            updateProgress();
+        } catch (err) {
+            console.error(err);
+            alert("렌더링 오류 발생: " + err.message);
+        }
+    }
+
+    function submitAnswer() {
+        const word = quizQueue[0];
+        
+        // Gather Pinyin Input
+        const pInputs = document.querySelectorAll('.pinyin-input');
+        
+        // Gather Pre-filled Tones
+        const tDisplays = document.querySelectorAll('.tone-display');
+        
+        // Combine Pinyin Inputs (Raw, no tone conversion needed for backend check)
+        const combinedPinyin = Array.from(pInputs).map(input => input.value.trim()).join(' ');
+
+        const mValue = inputMeaning.value.trim();
+        
+        // API Call
+        fetch('{% url "words:api_grade_word" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                word_id: word.id,
+                pinyin: combinedPinyin, // Sent correct format
+                meaning: mValue
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+             handleResult(data);
+        })
+        .catch(err => {
+            console.error(err);
+            alert('오류가 발생했습니다.');
+        });
     }
     
-    inputs.forEach(input => {
-        input.addEventListener('input', updateProgress);
-    });
+    // Helper for Tone Conversion
+    function convertToTone(text, toneVal) {
+        if (!toneVal || toneVal === '5') return text; // Neutral or 5th
+        
+        const vowels = {
+            'a': ['ā', 'á', 'ǎ', 'à'],
+            'e': ['ē', 'é', 'ě', 'è'],
+            'i': ['ī', 'í', 'ǐ', 'ì'],
+            'o': ['ō', 'ó', 'ǒ', 'ò'],
+            'u': ['ū', 'ú', 'ǔ', 'ù'],
+            'v': ['ǖ', 'ǘ', 'ǚ', 'ǜ'],
+            'ü': ['ǖ', 'ǘ', 'ǚ', 'ǜ'],
+        };
+        
+        let chars = text.split('');
+        let bestIdx = -1;
+        
+        // Priority: a, e, o
+        // iu/ui handling
+        
+        if (text.includes("iu")) {
+             bestIdx = text.lastIndexOf("u");
+        } else if (text.includes("ui")) {
+             bestIdx = text.lastIndexOf("i");
+        } else {
+            for (let char of "aoe") {
+                if (text.includes(char)) {
+                    bestIdx = text.indexOf(char);
+                    break;
+                }
+            }
+            if (bestIdx === -1) {
+                for (let i=chars.length-1; i>=0; i--) {
+                    if ("iuvü".includes(chars[i])) {
+                        bestIdx = i;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (bestIdx !== -1) {
+            const char = chars[bestIdx];
+            const toneIdx = parseInt(toneVal) - 1;
+            if (vowels[char] && vowels[char][toneIdx]) {
+                chars[bestIdx] = vowels[char][toneIdx];
+            }
+        }
+        
+        return chars.join('');
+    }
+
+    function handleResult(data) {
+        // UI Updates
+        isReviewMode = true;
+        btnSubmit.style.display = 'none';
+        btnNext.style.display = 'flex'; // Flex for center
+        btnNext.focus(); 
+
+        if (data.is_correct) {
+            quizCard.classList.add('correct');
+            
+            // Success Message
+            correctAnswerBox.style.display = 'block';
+            correctAnswerBox.classList.add('success-mode');
+            correctAnswerBox.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle me-3" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <div class="fw-bold" style="font-size: 1.1rem;">정답입니다!</div>
+                        <div class="small">훌륭해요!</div>
+                    </div>
+                </div>
+            `;
+            
+            // Logic Update
+            quizQueue.shift();
+            completedCount++;
+        } else {
+            quizCard.classList.add('wrong');
+            // Show correct answer
+            correctAnswerBox.style.display = 'block';
+            correctAnswerBox.classList.remove('success-mode');
+            correctAnswerBox.innerHTML = `
+                <div class="fw-bold mb-1">오답입니다</div>
+                <div class="mb-2">정답: <span class="fw-bold text-dark">${data.correct_pinyin}</span> (${data.correct_meaning})</div>
+                <div class="small text-muted">이 단어는 잠시 후 다시 출제됩니다.</div>
+            `;
+            
+            // Logic Update
+            const wrongWord = quizQueue.shift();
+            quizQueue.push(wrongWord);
+        }
+    }
     
-    // 폼 제출 시 확인 및 hidden 필드 업데이트
-    document.getElementById('quizForm').addEventListener('submit', function(e) {
-        // 모든 단어의 hidden 필드를 최신 값으로 업데이트
-        {% for word in words %}
-        (function() {
-            const pk = `{{ word.pk }}`;
-            const dynDiv = document.getElementById('dynamic-pinyin-tone-' + pk);
-            const hiddenPinyin = document.getElementById('hidden-pinyin-' + pk);
-            if (dynDiv && hiddenPinyin) {
-                const pinyinInputs = dynDiv.querySelectorAll('input.pinyin-input');
-                const pinyinVal = Array.from(pinyinInputs)
-                    .map(inp => inp.value.trim())
-                    .filter(val => val !== '')
-                    .join(' ');
-                hiddenPinyin.value = pinyinVal;
-            }
-        })();
-        {% endfor %}
+    function nextQuestion() {
+        renderQuestion();
+    }
+
+    function updateProgress() {
+        currentCountEl.textContent = completedCount + 1;
+        const progress = Math.min(100, (completedCount / initialTotal) * 100);
+        progressBar.style.width = `${progress}%`;
         
-        const requiredInputs = document.querySelectorAll('input[required]');
-        const emptyRequired = Array.from(requiredInputs).filter(input => input.value.trim() === '');
-        
-        if (emptyRequired.length > 0) {
-            e.preventDefault();
-            alert('모든 필수 항목을 입력해주세요!');
-            emptyRequired[0].focus();
+        if (completedCount >= initialTotal) {
+             currentCountEl.textContent = initialTotal;
         }
-    });
+    }
+
+    function showCompletion() {
+        quizCard.style.display = 'none';
+        completionScreen.classList.add('visible');
+    }
 });
-
-// 퀴즈 병음/성조 동적 입력 UI 생성
-document.addEventListener('DOMContentLoaded', function() {
-    // 각 퀴즈 단어별로 동적 UI 생성
-    {% for word in words %}
-    (function() {
-        const wordStr = `{{ word.word }}`;
-        const pinyinDataRaw = `{{ word.pinyin|default_if_none:''|escapejs }}`;
-        const pinyinParts = pinyinDataRaw.trim() ? pinyinDataRaw.trim().split(/\s+/) : [];
-        const toneDataRaw = `{{ word.tone|default_if_none:''|escapejs }}`;
-        const toneParts = toneDataRaw.trim() ? toneDataRaw.trim().split(/\s+/) : [];
-        const pk = `{{ word.pk }}`;
-        const dynDiv = document.getElementById('dynamic-pinyin-tone-' + pk);
-        const hiddenPinyin = document.getElementById('hidden-pinyin-' + pk);
-        const hiddenTone = document.getElementById('hidden-tone-' + pk);
-        if (!dynDiv || !hiddenPinyin || !hiddenTone) return;
-
-        // labelCol 생성
-        const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.gap = '0.7rem';
-        row.style.marginBottom = '0.5rem';
-        row.style.alignItems = 'flex-start';
-        row.style.justifyContent = 'flex-start';
-        row.style.marginLeft = '0';
-        row.style.width = '100%';
-
-        const labelCol = document.createElement('div');
-        labelCol.style.display = 'flex';
-        labelCol.style.flexDirection = 'column';
-        labelCol.style.alignItems = 'flex-start';
-        labelCol.style.justifyContent = 'center';
-        labelCol.style.gap = '1.5rem';
-        labelCol.style.width = '40px';
-        labelCol.style.alignSelf = 'center';
-        labelCol.innerHTML = `
-          <label style="display:flex;align-items:center;font-weight:600;font-size:0.98rem;margin-bottom:0.1rem;">성조</label>
-          <label style="display:flex;align-items:center;font-weight:600;font-size:0.98rem;">병음</label>
-        `;
-        row.appendChild(labelCol);
-
-        // 성조/병음 입력 세트
-        const toneSymbols = ['ˉ','ˊ','ˇ','ˋ','•'];
-        const toneNums = ['1','2','3','4','5'];
-        // 실제 저장된 병음 토큰 수에 맞게 칸 수 결정 (pinyinParts가 있으면 그 길이, 없으면 한자 글자 수)
-        const segmentCount = (pinyinParts.length > 0 ? pinyinParts.length : wordStr.length);
-        for (let i = 0; i < segmentCount; i++) {
-            const col = document.createElement('div');
-            col.style.display = 'flex';
-            col.style.flexDirection = 'column';
-            col.style.alignItems = 'center';
-            col.style.gap = '0.5rem';
-
-            // 성조 드롭다운
-            const select = document.createElement('select');
-            select.className = 'form-select-sm custom-select';
-            select.style.width = '64px';
-            select.style.textAlign = 'center';
-            select.style.fontSize = '1.5rem';
-            select.style.height = '2em';
-            select.style.padding = '0.5em 0 0 0';
-            select.style.lineHeight = '0.8';
-            for (let j = 0; j < 5; j++) {
-                const opt = document.createElement('option');
-                opt.value = toneNums[j];
-                opt.textContent = toneSymbols[j];
-                select.appendChild(opt);
-            }
-            select.dataset.idx = i;
-            const toneValue = toneParts[i] || toneParts[toneParts.length - 1] || '1';
-            select.value = toneValue;
-            select.disabled = true;
-            select.classList.add('tone-readonly');
-            col.appendChild(select);
-
-            // 병음 input
-            const inp = document.createElement('input');
-            inp.type = 'text';
-            inp.maxLength = 8;
-            inp.className = 'form-control-custom pinyin-input';
-            inp.style.width = '97px';
-            inp.style.textAlign = 'center';
-            inp.placeholder = `병음${i+1}`;
-            inp.dataset.idx = i;
-            inp.addEventListener('input', updateHidden);
-            col.appendChild(inp);
-
-            row.appendChild(col);
-        }
-        dynDiv.appendChild(row);
-
-        function updateHidden() {
-            const pinyinInputs = dynDiv.querySelectorAll('input.pinyin-input');
-            const pinyinVal = Array.from(pinyinInputs)
-                .map(inp => inp.value.trim())
-                .filter(val => val !== '')
-                .join(' ');
-            hiddenPinyin.value = pinyinVal;
-            hiddenTone.value = toneParts.length ? toneParts.join(' ') : '';
-        }
-
-        updateHidden();
-    })();
-    {% endfor %}
-});
-  </script>
+</script>
 {% endblock content %}
