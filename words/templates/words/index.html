@@ -728,6 +728,9 @@
                 <i class="fas fa-question-circle"></i>
               </div>
               <h3>오늘의 퀴즈</h3>
+              {% if today_review_words > 0 %}
+                  <span class="badge bg-primary rounded-pill ms-2" style="font-size: 0.9rem; padding: 0.5em 0.8em;">{{ today_review_words }}개</span>
+              {% endif %}
             </div>
             {% if total_learning_words == 0 %}
               <div class="w-100 text-center mt-3">
@@ -735,7 +738,7 @@
               </div>
             {% elif today_review_words == 0 %}
               <div class="w-100 text-center mt-3">
-                <div class="alert alert-info alert-custom">오늘 복습할 단어가 없습니다. 내일 다시 시도해보세요.</div>
+                <div class="alert alert-info alert-custom">오늘 복습할 단어가 더이상 없습니다. 내일 다시 시도해보세요.</div>
               </div>
             {% else %}
               <div class="quiz-header-right">
@@ -781,7 +784,6 @@
             <h4 class="card-title mb-3 d-flex align-items-center">
               <i class="fas fa-clock text-warning me-2"></i>
               오늘 복습할 단어
-              <span class="badge bg-warning text-dark ms-2">{{ today_review_words }}개</span>
             </h4>
             <ul class="list-modern">
               {% for learning_word in today_words %}

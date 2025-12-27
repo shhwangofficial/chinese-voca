@@ -307,6 +307,7 @@ def api_grade_word(request):
         cache.delete(f'user_stats_{user.id}_{logical_date_str}')
         cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
         cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
+        cache.delete(f'user_recent_words_{user.id}_{logical_date_str}')
         
         return JsonResponse({
             'status': 'success',
@@ -339,6 +340,7 @@ def api_grade_word(request):
         cache.delete(f'user_stats_{user.id}_{logical_date_str}')
         cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
         cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
+        cache.delete(f'user_recent_words_{user.id}_{logical_date_str}')
         
         return JsonResponse({
             'status': 'success',
