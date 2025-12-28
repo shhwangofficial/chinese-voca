@@ -190,6 +190,25 @@
         flex-wrap: wrap;
         margin-top: 1.5rem;
     }
+    
+    .position-relative {
+        position: relative;
+    }
+    .warning-text {
+        color: #e74c3c;
+        font-size: 0.8rem;
+        font-weight: 600;
+        opacity: 0;
+        transition: opacity 0.3s;
+        position: absolute;
+        bottom: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 10;
+        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+    }
   </style>
 {% endblock head %}
 {% block content %}
@@ -216,16 +235,18 @@
             <div class="help-text">등록할 단어입니다.</div>
           </div>
           <!-- 병음/성조 동적 입력 UI -->
-          <div class="input-row">
+          <div class="input-row position-relative" style="margin-bottom: 2rem;">
             <div class="input-group-custom input-group-fullwidth">
               <div id="dynamic-pinyin-tone"></div>
               <input type="hidden" name="pinyin" id="hidden-pinyin">
               <input type="hidden" name="tone" id="hidden-tone">
             </div>
+            <div id="pinyin-warning" class="warning-text">한글은 입력할 수 없습니다.</div>
           </div>
-          <div class="form-group-custom">
+          <div class="form-group-custom position-relative">
             <label for="{{ form.meaning.id_for_label }}">의미</label>
             {{ form.meaning }}
+            <div id="meaning-warning" class="warning-text">영문은 입력할 수 없습니다.</div>
           </div>
           <div class="form-group-custom">
             <label for="{{ form.word_class.id_for_label }}">품사</label>
