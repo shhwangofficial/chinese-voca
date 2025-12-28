@@ -295,6 +295,23 @@ document.addEventListener('DOMContentLoaded', function() {
     inputs.forEach(input => {
         input.classList.add('form-control-custom');
     });
+
+    // Meaning Validation (No English)
+    const meaningInput = document.querySelector('input[name="meaning"]');
+    const meaningWarning = document.getElementById('meaning-warning');
+    let mTimer;
+    if (meaningInput && meaningWarning) {
+        meaningInput.addEventListener('input', function() {
+             const original = this.value;
+             const cleaned = original.replace(/[a-zA-Z]/g, '');
+             if (original !== cleaned) {
+                 this.value = cleaned;
+                 meaningWarning.style.opacity = '1';
+                 if (mTimer) clearTimeout(mTimer);
+                 mTimer = setTimeout(() => { meaningWarning.style.opacity = '0'; }, 2000);
+             }
+        });
+    }
 });
 
 // 병음/성조 동적 입력 UI 생성 (드롭다운)
@@ -380,7 +397,23 @@ document.addEventListener('DOMContentLoaded', function() {
             inp.style.textAlign = 'center';
             inp.placeholder = `병음${i+1}`;
             inp.dataset.idx = i;
-            inp.addEventListener('input', updateHidden);
+            inp.addEventListener('input', function(e) {
+                 // Validation (No Korean)
+                 const original = this.value;
+                 const cleaned = original.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '');
+                 if (original !== cleaned) {
+                     this.value = cleaned;
+                     // Show Warning
+                     const pWarning = document.getElementById('pinyin-warning');
+                     if (pWarning) {
+                         pWarning.style.opacity = '1';
+                         if (pWarning.dataset.timer) clearTimeout(parseInt(pWarning.dataset.timer));
+                         const tid = setTimeout(() => { pWarning.style.opacity = '0'; }, 2000);
+                         pWarning.dataset.timer = tid;
+                     }
+                 }
+                 updateHidden();
+            });
             col.appendChild(inp);
 
             row.appendChild(col);
