@@ -267,6 +267,36 @@
         display: block;
     }
 
+    /* Validation Effects */
+    @keyframes shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        50% { transform: translateX(10px); }
+        75% { transform: translateX(-10px); }
+        100% { transform: translateX(0); }
+    }
+    
+    .shake {
+        animation: shake 0.4s ease-in-out;
+    }
+    
+    .border-warning-custom {
+        border-color: #f1c40f !important; /* Yellow */
+        box-shadow: 0 0 0 4px rgba(241, 196, 15, 0.2) !important;
+    }
+    
+    .warning-text {
+        color: #e74c3c;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-top: 4px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        position: absolute;
+        bottom: -22px;
+        left: 4px;
+    }
+
 </style>
 {% endblock head %}
 
@@ -307,15 +337,17 @@
                         <div id="pinyin-container" class="row-inputs">
                             <!-- Injected JS -->
                         </div>
+                        <div id="pinyin-warning" class="warning-text">한글은 입력할 수 없습니다.</div>
                     </div>
                 </div>
 
                 <!-- Meaning -->
-                <div class="mb-3">
+                <div class="mb-3 position-relative">
                     <div class="meaning-label-row">
                         <i class="fas fa-language"></i> 의미
                     </div>
                     <input type="text" id="input-meaning" class="meaning-input" placeholder="의미를 입력하세요" required>
+                    <div id="meaning-warning" class="warning-text">영문은 입력할 수 없습니다.</div>
                 </div>
                 
                 <!-- Result Display -->
@@ -381,6 +413,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Init
     totalCountEl.textContent = initialTotal;
     updateProgress();
+    
+    const meaningWarning = document.getElementById('meaning-warning');
+    let warningTimeout;
+
+    // Real-time Validation: Meaning (No English)
+    inputMeaning.addEventListener('input', function() {
+        const original = this.value;
+        const cleaned = original.replace(/[a-zA-Z]/g, '');
+        
+        if (original !== cleaned) {
+            this.value = cleaned;
+            
+            // Show Feedback
+            if (meaningWarning) {
+                meaningWarning.style.opacity = '1';
+                clearTimeout(warningTimeout);
+                warningTimeout = setTimeout(() => {
+                    meaningWarning.style.opacity = '0';
+                }, 2000);
+            }
+        }
+    });
     
     if (quizQueue.length > 0) {
         renderQuestion();
@@ -480,6 +534,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (index === 0) setTimeout(() => pInput.focus(), 100);
                 
                 pinyinContainer.appendChild(pInput);
+                
+                // Real-time Validation: Pinyin (No Korean)
+                pInput.addEventListener('input', function() {
+                    const original = this.value;
+                    const cleaned = original.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '');
+                    
+                    if (original !== cleaned) {
+                        this.value = cleaned;
+                        
+                        // Show Warning
+                        const pWarning = document.getElementById('pinyin-warning');
+                        if (pWarning) {
+                            pWarning.style.opacity = '1';
+                            if (pWarning.timer) clearTimeout(pWarning.timer);
+                            pWarning.timer = setTimeout(() => {
+                                pWarning.style.opacity = '0';
+                            }, 2000);
+                        }
+                    }
+                });
             });
     
             // Meaning Hint
@@ -508,6 +582,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const mValue = inputMeaning.value.trim();
         
+        // Validation: Block Submission if invalid chars exist (Fallback)
+        // Pinyin: No Korean, Meaning: No English
+        if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(combinedPinyin) || /[a-zA-Z]/.test(mValue)) {
+            triggerShakeWarning();
+            return;
+        }
+        
         // API Call
         fetch('{% url "words:api_grade_word" %}', {
             method: 'POST',
@@ -531,6 +612,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    function triggerShakeWarning() {
+        quizCard.classList.remove('shake', 'border-warning-custom');
+        void quizCard.offsetWidth; // Trigger reflow
+        quizCard.classList.add('shake', 'border-warning-custom');
+        
+        setTimeout(() => {
+            quizCard.classList.remove('shake', 'border-warning-custom');
+        }, 1000);
+    }
+
     // Helper for Tone Conversion
     function convertToTone(text, toneVal) {
         if (!toneVal || toneVal === '5') return text; // Neutral or 5th
