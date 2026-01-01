@@ -291,12 +291,26 @@ def api_grade_word(request):
         updated_wrong = learning.wrong_count
         learning.correct_count += 1
         
+        current_learning_term = learning.learning_term
         base_multiplier = 1.5
         multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
-        new_learning_term = math.ceil(learning.learning_term * multiplier + 1)
         
+        # Calculate new_learning_term (Future Cycle)
+        # If term was 0 (new/failed), next term becomes 1.
+        if current_learning_term == 0:
+            next_review_delta = 1
+            new_learning_term = 1
+        else:
+            # If term > 0, we use the current term as the delta ("Review in n days")
+            # And calculate the next term for the future.
+            next_review_delta = current_learning_term
+            new_learning_term = math.ceil(current_learning_term * multiplier + 1)
+        
+        # Schedule next review
         logical_today = (timezone.localtime() - timedelta(hours=4)).date()
-        target_date = logical_today + timedelta(days=new_learning_term)
+        target_date = logical_today + timedelta(days=next_review_delta)
+        
+        # Save results
         learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time())) + timedelta(hours=4)
         learning.learning_term = new_learning_term
         learning.save()
@@ -330,7 +344,7 @@ def api_grade_word(request):
         
         # 틀렸을 때의 패널티
         learning.wrong_count += 1
-        learning.learning_term = max(1, math.ceil(learning.learning_term * 0.7)) 
+        learning.learning_term = 0
         learning.to_be_revised = timezone.now() # 복습 시간은 현재로
         learning.save()
         
