@@ -691,12 +691,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Success Message
             correctAnswerBox.style.display = 'block';
             correctAnswerBox.classList.add('success-mode');
+            
+            let message = '훌륭해요!';
+            if (data.next_review_delta) {
+                if (data.next_review_delta === 1) {
+                    message = '내일 다시 복습해요!';
+                } else {
+                    message = `${data.next_review_delta}일 뒤에 다시 만나요!`;
+                }
+            }
+
             correctAnswerBox.innerHTML = `
                 <div class="d-flex align-items-center">
                     <i class="fas fa-check-circle me-3" style="font-size: 1.5rem;"></i>
                     <div>
                         <div class="fw-bold" style="font-size: 1.1rem;">정답입니다!</div>
-                        <div class="small">훌륭해요!</div>
+                        <div class="small">${message}</div>
                     </div>
                 </div>
             `;
@@ -709,10 +719,19 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show correct answer
             correctAnswerBox.style.display = 'block';
             correctAnswerBox.classList.remove('success-mode');
+            
+            const originalTerm = data.original_learning_term || 0;
+            
             correctAnswerBox.innerHTML = `
                 <div class="fw-bold mb-1">오답입니다</div>
                 <div class="mb-2">정답: <span class="fw-bold text-dark">${data.correct_pinyin}</span> (${data.correct_meaning})</div>
-                <div class="small text-muted">이 단어는 잠시 후 다시 출제됩니다.</div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <div class="small text-muted">이 단어는 잠시 후 다시 출제됩니다.</div>
+                    <button type="button" class="btn btn-sm btn-outline-success" id="btn-mark-correct" 
+                        onclick="markAsCorrect(${quizQueue[0].id}, ${originalTerm})">
+                        정답으로 처리하기
+                    </button>
+                </div>
             `;
             
             // Logic Update
@@ -720,6 +739,75 @@ document.addEventListener('DOMContentLoaded', function() {
             quizQueue.push(wrongWord);
         }
     }
+
+    // Expose to window so onclick works
+    window.markAsCorrect = function(wordId, originalTerm) {
+        if (!confirm('정말로 정답으로 처리하시겠습니까?')) return;
+        
+        // Disable button to prevent double click
+        const btn = document.getElementById('btn-mark-correct');
+        if(btn) btn.disabled = true;
+
+        fetch('{% url "words:api_mark_as_correct" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                word_id: wordId,
+                original_learning_term: originalTerm
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // UI Transition to Correct state
+                quizCard.classList.remove('wrong');
+                quizCard.classList.add('correct');
+                
+                correctAnswerBox.classList.add('success-mode');
+                
+                let message = '정답으로 처리되었습니다.';
+                if (data.next_review_delta) {
+                     if (data.next_review_delta === 1) {
+                        message = '내일 다시 복습해요!';
+                    } else {
+                        message = `${data.next_review_delta}일 뒤에 다시 만나요!`;
+                    }
+                }
+
+                correctAnswerBox.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <div class="fw-bold" style="font-size: 1.1rem;">정답으로 변경되었습니다!</div>
+                            <div class="small">${message}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Logic Fix
+                // We pushed it to the back earlier. We need to remove it from the back.
+                // Because we just "passed" it.
+                // However, queue logic: 
+                // Wrong -> Shift front, push back.
+                // Correction -> We want it treated as DONE. 
+                // So remove the last element (which is the one we pushed).
+                quizQueue.pop(); 
+                
+                completedCount++;
+            } else {
+                alert('오류: ' + data.message);
+                if(btn) btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('통신 오류가 발생했습니다.');
+            if(btn) btn.disabled = false;
+        });
+    };
     
     function nextQuestion() {
         renderQuestion();

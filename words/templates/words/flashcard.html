@@ -333,12 +333,14 @@
                     currentIndex--;
                     animateCard('left');
                 }
-            } else if (e.key === 'ArrowRight' || e.key === ' ') {
-                if (e.key === ' ') e.preventDefault();
+            } else if (e.key === 'ArrowRight') {
                 if (currentIndex < wordsData.length - 1) {
                     currentIndex++;
                     animateCard('right');
                 }
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                pinyinContainer.classList.toggle('revealed');
             } else if (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 cardElement.classList.toggle('revealed');
             }

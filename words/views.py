@@ -274,98 +274,103 @@ def api_grade_word(request):
     
     is_correct = is_correct_pinyin and is_correct_meaning
 
+    current_learning_term = learning.learning_term
+    
     if is_correct:
-        learning.no_of_revision += 1
-        learning.last_time_revised = timezone.now()
-        
-        # StudyLog (KST -4h offset logic)
-        log_date = (timezone.localtime() - timedelta(hours=4)).date()
-        StudyLog.objects.create(
-            user=user,
-            word=ans_word,
-            is_correct=True,
-            date=log_date
-        )
-        
-        # Correct Logic (Logistic Correction)
-        updated_wrong = learning.wrong_count
-        learning.correct_count += 1
-        
-        current_learning_term = learning.learning_term
-        base_multiplier = 1.5
-        multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
-        
-        # Calculate new_learning_term (Future Cycle)
-        # If term was 0 (new/failed), next term becomes 1.
-        if current_learning_term == 0:
-            next_review_delta = 1
-            new_learning_term = 1
-        else:
-            # If term > 0, we use the current term as the delta ("Review in n days")
-            # And calculate the next term for the future.
-            next_review_delta = current_learning_term
-            new_learning_term = math.ceil(current_learning_term * multiplier + 1)
-        
-        # Schedule next review
-        logical_today = (timezone.localtime() - timedelta(hours=4)).date()
-        target_date = logical_today + timedelta(days=next_review_delta)
-        
-        # Save results
-        learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time())) + timedelta(hours=4)
-        learning.learning_term = new_learning_term
-        learning.save()
-        
-        # Cache Invalidation (Update Homepage Stats)
-        now_kst = timezone.localtime()
-        logical_date_str = (now_kst - timedelta(hours=4)).date().strftime("%Y-%m-%d")
-        cache.delete(f'user_stats_{user.id}_{logical_date_str}')
-        cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
-        cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
-        cache.delete(f'user_recent_words_{user.id}_{logical_date_str}')
-        
-        return JsonResponse({
-            'status': 'success',
-            'is_correct': True,
-            'message': 'Correct!'
-        })
-        
+         learning.no_of_revision += 1
+         learning.last_time_revised = timezone.now()
+         
+         # StudyLog (KST -4h offset logic)
+         log_date = (timezone.localtime() - timedelta(hours=4)).date()
+         StudyLog.objects.create(
+             user=user,
+             word=ans_word,
+             is_correct=True,
+             date=log_date
+         )
+         
+         # Correct Logic (Logistic Correction)
+         updated_wrong = learning.wrong_count
+         learning.correct_count += 1
+         
+         base_multiplier = 1.5
+         multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
+         
+         # Calculate new_learning_term (Future Cycle)
+         # If term was 0 (new/failed), next term becomes 1.
+         if current_learning_term == 0:
+             next_review_delta = 1
+             new_learning_term = 1
+         else:
+             # If term > 0, we use the current term as the delta ("Review in n days")
+             # And calculate the next term for the future.
+             next_review_delta = current_learning_term
+             new_learning_term = math.ceil(current_learning_term * multiplier + 1)
+         
+         # Schedule next review
+         logical_today = (timezone.localtime() - timedelta(hours=4)).date()
+         target_date = logical_today + timedelta(days=next_review_delta)
+         
+         # Save results
+         learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time())) + timedelta(hours=4)
+         learning.learning_term = new_learning_term
+         learning.save()
+         
+         # Cache Invalidation (Update Homepage Stats)
+         now_kst = timezone.localtime()
+         logical_date_str = (now_kst - timedelta(hours=4)).date().strftime("%Y-%m-%d")
+         cache.delete(f'user_stats_{user.id}_{logical_date_str}')
+         cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
+         cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
+         cache.delete(f'user_recent_words_{user.id}_{logical_date_str}')
+         
+         return JsonResponse({
+             'status': 'success',
+             'is_correct': True,
+             'message': 'Correct!',
+             'next_review_delta': next_review_delta
+         })
+         
     else:
-        # 틀림
-        learning.no_of_revision += 1
-        learning.last_time_revised = timezone.now()
-        
-        log_date = (timezone.localtime() - timedelta(hours=4)).date()
-        StudyLog.objects.create(
-            user=user,
-            word=ans_word,
-            is_correct=False,
-            date=log_date
-        )
-        
-        # 틀렸을 때의 패널티
-        learning.wrong_count += 1
-        learning.learning_term = 0
-        learning.to_be_revised = timezone.now() # 복습 시간은 현재로
-        learning.save()
-        
-        # Cache Invalidation
-        now_kst = timezone.localtime()
-        logical_date_str = (now_kst - timedelta(hours=4)).date().strftime("%Y-%m-%d")
-        cache.delete(f'user_stats_{user.id}_{logical_date_str}')
-        cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
-        cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
-        cache.delete(f'user_recent_words_{user.id}_{logical_date_str}')
-        
-        return JsonResponse({
-            'status': 'success',
-            'is_correct': False,
-            'correct_pinyin': ans_word.pinyin,
-            'correct_meaning': ans_word.meaning,
-            'word_tone': ans_word.tone,
-             # Return answer details for UI feedback
-             'word': ans_word.word,
-             'is_correct': False
-        })
+         # 틀림
+         learning.no_of_revision += 1
+         learning.last_time_revised = timezone.now()
+         
+         log_date = (timezone.localtime() - timedelta(hours=4)).date()
+         StudyLog.objects.create(
+             user=user,
+             word=ans_word,
+             is_correct=False,
+             date=log_date
+         )
+         
+         # 틀렸을 때의 패널티
+         learning.wrong_count += 1
+         # Store original term before resetting, to send to frontend for "undo"
+         original_learning_term = learning.learning_term 
+         
+         learning.learning_term = 0
+         learning.to_be_revised = timezone.now() # 복습 시간은 현재로
+         learning.save()
+         
+         # Cache Invalidation
+         now_kst = timezone.localtime()
+         logical_date_str = (now_kst - timedelta(hours=4)).date().strftime("%Y-%m-%d")
+         cache.delete(f'user_stats_{user.id}_{logical_date_str}')
+         cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
+         cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
+         cache.delete(f'user_recent_words_{user.id}_{logical_date_str}')
+         
+         return JsonResponse({
+             'status': 'success',
+             'is_correct': False,
+             'correct_pinyin': ans_word.pinyin,
+             'correct_meaning': ans_word.meaning,
+             'word_tone': ans_word.tone,
+              # Return answer details for UI feedback
+              'word': ans_word.word,
+              'original_learning_term': original_learning_term
+         })
 
 
 
@@ -565,3 +570,108 @@ def flashcard_list(request):
     }
     
     return render(request, "words/flashcard.html", context)
+
+
+@require_http_methods(["POST"])
+def api_mark_as_correct(request):
+    import json
+    from django.http import JsonResponse
+    
+    user = request.user
+    if not user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Login required'}, status=401)
+        
+    try:
+        data = json.loads(request.body)
+        word_id = data.get('word_id')
+        # We need original term to restore state before applying "correct" logic properly
+        # However, if we just want to treat it as "correct now", we can just
+        # undo the "wrong" penalty and apply "correct" logic.
+        # But "wrong" logic set term to 0. We need to know what it was.
+        original_term = data.get('original_learning_term', 0)
+    except:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+
+    try:
+        ans_word = Word.objects.get(pk=word_id)
+        learning = LearningWord.objects.get(user=user, word=ans_word)
+    except (Word.DoesNotExist, LearningWord.DoesNotExist):
+        return JsonResponse({'status': 'error', 'message': 'Word not found'}, status=404)
+
+    # 1. Revert "Wrong" penalties
+    # The user just got it wrong, so wrong_count was incremented.
+    if learning.wrong_count > 0:
+        learning.wrong_count -= 1
+    
+    # Restore term so the "Correct" logic calculation has the right base
+    learning.learning_term = original_term
+    
+    # Remove the "Wrong" StudyLog (if it exists and is recent)
+    # We look for the most recent wrong log for this word today
+    log_date = (timezone.localtime() - timedelta(hours=4)).date()
+    wrong_log = StudyLog.objects.filter(
+        user=user, 
+        word=ans_word, 
+        is_correct=False, 
+        date=log_date
+    ).order_by('-timestamp').first()
+    
+    if wrong_log:
+        wrong_log.delete()
+
+    # 2. Apply "Correct" logic
+    # (Similar to api_grade_word but we don't increment revision count again 
+    # if we consider the previous attempt was the revision event... 
+    # actually, usually 'mark as correct' implies 'that last attempt was actually correct')
+    # So we keep no_of_revision increment (it was tried), 
+    # but we need to ensure we don't double count if we just edited the state.
+    # The previous 'wrong' logic incremented no_of_revision. We keep that.
+    
+    # Update stats
+    learning.correct_count += 1
+    learning.last_time_revised = timezone.now() # Update time to now
+
+    # Create "Correct" StudyLog
+    StudyLog.objects.create(
+        user=user,
+        word=ans_word,
+        is_correct=True,
+        date=log_date
+    )
+
+    # Calculate Terms (Same formula as api_grade_word)
+    # Note: learning.wrong_count is now reverted.
+    updated_wrong = learning.wrong_count
+    current_learning_term = learning.learning_term # This is now original_term
+    
+    base_multiplier = 1.5
+    multiplier = base_multiplier + (2 - base_multiplier) / (1 + updated_wrong)
+    
+    if current_learning_term == 0:
+        next_review_delta = 1
+        new_learning_term = 1
+    else:
+        next_review_delta = current_learning_term
+        new_learning_term = math.ceil(current_learning_term * multiplier + 1)
+    
+    # Schedule next review
+    logical_today = (timezone.localtime() - timedelta(hours=4)).date()
+    target_date = logical_today + timedelta(days=next_review_delta)
+    
+    learning.to_be_revised = timezone.make_aware(datetime.combine(target_date, datetime.min.time())) + timedelta(hours=4)
+    learning.learning_term = new_learning_term
+    learning.save()
+
+    # Cache Invalidation
+    now_kst = timezone.localtime()
+    logical_date_str = (now_kst - timedelta(hours=4)).date().strftime("%Y-%m-%d")
+    cache.delete(f'user_stats_{user.id}_{logical_date_str}')
+    cache.delete(f'user_today_words_{user.id}_{logical_date_str}')
+    cache.delete(f'user_weekly_stats_{user.id}_{logical_date_str}')
+    cache.delete(f'user_recent_words_{user.id}_{logical_date_str}')
+
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Marked as correct',
+        'next_review_delta': next_review_delta
+    })
