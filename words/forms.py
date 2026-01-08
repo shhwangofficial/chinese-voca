@@ -9,7 +9,7 @@ class WordForm(forms.ModelForm):
         widgets = {
             'word': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '예: 你好'}),
             'pinyin': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '예: ni hao'}),
-            'tone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '예: 3 3'}),
+            'tone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '예: 3 3 (선택사항)'}),
             'meaning': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '예: 안녕하세요'}),
             'word_class': forms.Select(attrs={'class': 'form-control'}),
         }
@@ -17,7 +17,7 @@ class WordForm(forms.ModelForm):
 
 class LearnWordForm(forms.Form):
     word = forms.CharField(
-        max_length=20,
+        max_length=100,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '예: 你好'}),
         label='단어'
     )

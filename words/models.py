@@ -15,10 +15,10 @@ class Word(models.Model):
         ('interjection', '감탄사·의성·의태'),
     ]
     
-    word = models.CharField(max_length=20, verbose_name='단어', db_index=True)
-    pinyin = models.CharField(max_length=40, verbose_name='병음', db_index=True)
-    tone = models.CharField(max_length=20, verbose_name='성조')
-    meaning = models.CharField(max_length=40, verbose_name='의미', db_index=True)
+    word = models.CharField(max_length=100, verbose_name='단어', db_index=True)
+    pinyin = models.CharField(max_length=255, verbose_name='병음', db_index=True)
+    tone = models.CharField(max_length=50, verbose_name='성조', blank=True, default='')
+    meaning = models.CharField(max_length=255, verbose_name='의미', db_index=True)
     meaning_length = models.PositiveSmallIntegerField(verbose_name='의미 길이', default=0, editable=False)
     word_class = models.CharField(
         max_length=20, 
