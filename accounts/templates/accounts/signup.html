@@ -142,12 +142,27 @@
     <div class="auth-card">
       <form action="{% url 'accounts:signup' %}" method="post">
         {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+              <div><i class="fas fa-exclamation-circle me-2"></i>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
         <div class="form-group-custom">
           <label for="{{ form.username.id_for_label }}">
             <i class="fas fa-user me-1"></i>사용자명 *
           </label>
           {{ form.username }}
           {% if form.username.help_text %}<small class="text-muted">{{ form.username.help_text }}</small>{% endif %}
+          {% if form.username.errors %}
+            <div class="text-danger small mt-1">
+              {% for error in form.username.errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
         </div>
 
         <div class="form-group-custom">
@@ -155,14 +170,22 @@
             <i class="fas fa-lock me-1"></i>비밀번호 *
           </label>
           {{ form.password1 }}
+          {% if form.password1.errors %}
+            <div class="text-danger small mt-1">
+              {% for error in form.password1.errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
           {% if form.password1.help_text %}
             <div class="password-requirements">
               <h6>
                 <i class="fas fa-info-circle me-1"></i>비밀번호 요구사항:
               </h6>
               <div class="requirement-item">• 8자 이상이어야 합니다</div>
+              <div class="requirement-item">• 아이디와 너무 유사하면 안 됩니다</div>
               <div class="requirement-item">• 숫자와 문자를 포함해야 합니다</div>
-              <div class="requirement-item">• 너무 일반적이거나 개인정보를 포함하면 안 됩니다</div>
+              <div class="requirement-item">• 너무 일반적인 비밀번호는 사용할 수 없습니다</div>
             </div>
           {% endif %}
         </div>
