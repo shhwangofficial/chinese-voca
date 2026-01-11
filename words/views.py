@@ -300,7 +300,7 @@ def api_grade_word(request):
          # If term was 0 (new/failed), next term becomes 1.
          if current_learning_term == 0:
              next_review_delta = 1
-             new_learning_term = 1
+             new_learning_term = 3
          else:
              # If term > 0, we use the current term as the delta ("Review in n days")
              # And calculate the next term for the future.
@@ -649,7 +649,7 @@ def api_mark_as_correct(request):
     
     if current_learning_term == 0:
         next_review_delta = 1
-        new_learning_term = 1
+        new_learning_term = 3
     else:
         next_review_delta = current_learning_term
         new_learning_term = math.ceil(current_learning_term * multiplier + 1)
