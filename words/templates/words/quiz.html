@@ -2,24 +2,24 @@
 {% load static %}
 {% block head %}<link rel="stylesheet" href="{% static 'words/css/study.css' %}">{% endblock %}
 {% block content %}
-<div id="quiz-app" data-grade-url="{% url 'words:api_grade_word' %}" data-correct-url="{% url 'words:api_mark_as_correct' %}">
-<h1 class="h3">오늘의 퀴즈</h1>
-<div id="resume-panel" class="alert alert-info" hidden>이 창에서 풀던 퀴즈가 있습니다. <button id="resume" class="btn btn-primary">이어하기</button> <button id="restart" class="btn btn-outline-secondary">새로 시작</button></div>
-<p id="storage-message" role="status"></p>
-<p id="progress-label"></p><progress id="progress" value="0" max="1" class="w-100" aria-label="학습 진행률"></progress>
-<p id="error" class="alert alert-danger mt-3" role="alert" hidden></p>
-<form id="csrf-form" hidden>{% csrf_token %}</form>
-<section id="question" class="study-card">
-<p id="word-class" class="text-muted"></p><h2 id="word" class="study-word"></h2>
-<div class="d-flex gap-2 justify-content-center mb-4"><button id="speak" class="btn btn-outline-secondary" type="button">발음 듣기</button><select id="speech-rate" aria-label="발음 속도"><option value="0.7">느리게</option><option value="1" selected>보통</option></select></div>
-<form id="answer-form"><div id="pinyin-fields" class="syllables"></div>
-<label for="meaning" class="form-label mt-3">뜻</label><input id="meaning" name="meaning" class="form-control" required maxlength="255" autocomplete="off">
-<button id="submit" class="btn btn-primary mt-3" type="submit">정답 확인</button></form>
-<div id="feedback" aria-live="polite" hidden><h3 id="result-title" class="h5"></h3><p id="correct-answer"></p><button id="mark-correct" class="btn btn-outline-success">정답으로 인정</button> <button id="next" class="btn btn-primary">다음 문제</button></div>
-</section>
-<section id="completion" class="study-card" hidden><h2 class="h4">학습 완료</h2><p id="summary"></p><details><summary>문제별 결과</summary><ul id="history" class="text-start"></ul></details><a class="btn btn-primary mt-3" href="{% url 'words:index' %}">홈으로</a></section>
-<p class="text-muted mt-3">학습일은 한국 시간 오전 4시에 바뀝니다. Enter로 제출할 수 있습니다. 오류가 계속되면 <a href="{% url 'words:quiz' %}">새 퀴즈</a>를 시작하세요.</p>
-</div>
-{{ words_data|json_script:'quiz-data' }}{{ quiz_options|json_script:'quiz-options' }}
-<script type="module" src="{% static 'words/js/quiz.js' %}"></script>
+    <div id="quiz-app" data-grade-url="{% url 'words:api_grade_word' %}" data-correct-url="{% url 'words:api_mark_as_correct' %}">
+        <div class="eyebrow">FOCUS & REMEMBER</div><h1 class="h3">오늘의 퀴즈</h1><p>천천히 떠올려보세요. 틀려도 괜찮아요, 한 번 더 기억하면 되니까요.</p>
+        <div id="resume-panel" class="alert alert-info" hidden>이 창에서 풀던 퀴즈가 있습니다. <button id="resume" class="btn btn-primary">이어하기</button> <button id="restart" class="btn btn-outline-secondary">새로 시작</button></div>
+        <p id="storage-message" role="status"></p>
+        <p id="progress-label"></p><progress id="progress" value="0" max="1" class="w-100" aria-label="학습 진행률"></progress>
+        <p id="error" class="alert alert-danger mt-3" role="alert" hidden></p>
+        <form id="csrf-form" hidden>{% csrf_token %}</form>
+        <section id="question" class="study-card">
+            <p id="word-class" class="text-muted"></p><h2 id="word" class="study-word"></h2>
+            <div class="d-flex gap-2 justify-content-center mb-4"><button id="speak" class="btn btn-outline-secondary" type="button">발음 듣기</button><select id="speech-rate" aria-label="발음 속도"><option value="0.7">느리게</option><option value="1" selected>보통</option></select></div>
+            <form id="answer-form"><div id="pinyin-fields" class="syllables"></div>
+                <label for="meaning" class="form-label mt-3">뜻</label><input id="meaning" name="meaning" class="form-control" required maxlength="255" autocomplete="off">
+                <button id="submit" class="btn btn-primary mt-3" type="submit">정답 확인</button></form>
+            <div id="feedback" aria-live="polite" hidden><h3 id="result-title" class="h5"></h3><p id="correct-answer"></p><button id="mark-correct" class="btn btn-outline-success">정답으로 인정</button> <button id="next" class="btn btn-primary">다음 문제</button></div>
+        </section>
+        <section id="completion" class="study-card" hidden><h2 class="h4">학습 완료</h2><p id="summary"></p><details><summary>문제별 결과</summary><ul id="history" class="text-start"></ul></details><a class="btn btn-primary mt-3" href="{% url 'words:index' %}">홈으로</a></section>
+        <p class="study-hint">학습일은 한국 시간 오전 4시에 바뀝니다. Enter로 제출할 수 있습니다. 오류가 계속되면 <a href="{% url 'words:quiz' %}">새 퀴즈</a>를 시작하세요.</p>
+    </div>
+    {{ words_data|json_script:'quiz-data' }}{{ quiz_options|json_script:'quiz-options' }}
+    <script type="module" src="{% static 'words/js/quiz.js' %}"></script>
 {% endblock %}

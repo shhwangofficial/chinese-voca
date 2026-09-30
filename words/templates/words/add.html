@@ -1,12 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1 class="h3">{% if form_type == 'Word' %}새 단어 등록{% else %}학습 목록에 단어 추가{% endif %}</h1>
-<p>공용 사전에서 단어를 찾고, 없는 단어는 직접 등록합니다. 수정은 내 단어 목록에서 가능합니다.</p>
-<form method="post" class="voca-form">
-  {% csrf_token %}<input type="hidden" name="form_type" value="{{ form_type }}">
-  {{ form.as_p }}
-  <button class="btn btn-primary" type="submit">{% if form_type == 'Word' %}등록{% else %}찾아서 추가{% endif %}</button>
-  <a class="btn btn-outline-secondary" href="{% url 'words:word_list' %}">목록</a>
-</form>
-<p class="mt-4"><a href="{% url 'words:import_words' %}">CSV로 여러 단어 한 번에 등록</a></p>
+  <div class="form-layout"><div class="eyebrow">MY VOCABULARY</div><div class="panel form-panel">
+    <h1 class="h3">{% if form_type == 'Word' %}새 단어 등록{% else %}학습 목록에 단어 추가{% endif %}</h1>
+    <p>공용 사전에서 단어를 찾고, 없는 단어는 직접 등록합니다. 수정은 내 단어 목록에서 가능합니다.</p>
+    <form method="post" class="voca-form">
+      {% csrf_token %}<input type="hidden" name="form_type" value="{{ form_type }}">
+      {% include 'form_fields.html' %}
+      <button class="btn btn-primary" type="submit">{% if form_type == 'Word' %}등록{% else %}찾아서 추가{% endif %}</button>
+      <a class="btn btn-outline-secondary" href="{% url 'words:word_list' %}">목록</a>
+    </form>
+    <p class="mt-4"><a href="{% url 'words:import_words' %}">CSV로 여러 단어 한 번에 등록</a></p>
+  </div></div>
 {% endblock %}

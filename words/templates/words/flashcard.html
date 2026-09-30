@@ -2,9 +2,9 @@
 {% load static %}
 {% block head %}<link rel="stylesheet" href="{% static 'words/css/study.css' %}">{% endblock %}
 {% block content %}
-<h1 class="h3">플래시카드</h1>
-<p><a href="?scope=wrong">틀린 단어</a> · <a href="?scope=all">전체 단어</a></p>
-{% if words_data %}<div class="study-card"><p id="flash-count"></p><h2 id="flash-word" class="study-word"></h2><p id="flash-answer" hidden></p><button id="flash-reveal" class="btn btn-primary">답 보기</button> <button id="flash-speak" class="btn btn-outline-secondary">발음 듣기</button><p id="flash-error" role="status"></p><div class="mt-4"><button id="flash-prev" class="btn btn-outline-primary">이전</button> <button id="flash-next" class="btn btn-outline-primary">다음</button></div></div><p>← → 이동 · Space 답 보기. 플래시카드는 학습 기록이나 복습 일정을 변경하지 않습니다.</p>
-{% else %}<p>선택한 조건에 해당하는 단어가 없습니다. <a href="?scope=all">전체 단어 보기</a></p>{% endif %}
-{{ words_data|json_script:'flash-data' }}<script src="{% static 'words/js/flashcard.js' %}" defer></script>
+    <div class="study-heading"><div class="eyebrow">FLIP & LEARN</div><h1 class="h3">플래시카드</h1><p>답을 떠올리고, 카드를 열어 확인하세요.</p>
+        <nav class="study-tabs" aria-label="카드 범위"><a href="?scope=wrong" {% if request.GET.scope != "all" %}aria-current="page"{% endif %}>틀린 단어</a><a href="?scope=all" {% if request.GET.scope == "all" %}aria-current="page"{% endif %}>전체 단어</a></nav></div>
+    {% if words_data %}<div class="study-card"><p id="flash-count"></p><h2 id="flash-word" class="study-word"></h2><p id="flash-answer" hidden></p><button id="flash-reveal" class="btn btn-primary">답 보기</button> <button id="flash-speak" class="btn btn-outline-secondary">발음 듣기</button><p id="flash-error" role="status"></p><div class="mt-4"><button id="flash-prev" class="btn btn-outline-primary">이전</button> <button id="flash-next" class="btn btn-outline-primary">다음</button></div></div><p class="study-hint">← → 이동 · Space 답 보기. 플래시카드는 학습 기록이나 복습 일정을 변경하지 않습니다.</p>
+    {% else %}<div class="panel empty-state"><i class="far fa-clone" aria-hidden="true"></i><p>선택한 조건에 해당하는 단어가 없습니다. <a href="?scope=all">전체 단어 보기</a></p></div>{% endif %}
+    {{ words_data|json_script:'flash-data' }}<script src="{% static 'words/js/flashcard.js' %}" defer></script>
 {% endblock %}
