@@ -571,51 +571,7 @@
     }
   </style>
   <script>
-    function validateQuizNumber(input) {
-        let value = parseInt(input.value);
-        if (isNaN(value) || value < 1) {
-            input.value = 5;
-        } else if (value > 20) {
-            input.value = 20;
-        }
-        const formInput = document.getElementById('form_num_quiz');
-        if (formInput) {
-            formInput.value = input.value;
-        }
-    }
-    
-    function validateQuizForm() {
-        const input = document.getElementById('num_quiz');
-        let value = parseInt(input.value);
-        
-        if (isNaN(value) || value < 1 || value > 20) {
-            alert('퀴즈 문제 수는 1~20 사이의 숫자여야 합니다.');
-            input.value = 5;
-            const formInput = document.getElementById('form_num_quiz');
-            if (formInput) {
-                formInput.value = 5;
-            }
-            return false;
-        }
-        
-        const formInput = document.getElementById('form_num_quiz');
-        if (formInput) {
-            formInput.value = value;
-        }
-        
-        return true;
-    }
-    
     document.addEventListener('DOMContentLoaded', function() {
-        const input = document.getElementById('num_quiz');
-        const formInput = document.getElementById('form_num_quiz');
-        if (input && formInput) {
-            formInput.value = input.value;
-            input.addEventListener('input', function() {
-                formInput.value = input.value;
-            });
-        }
-        
         const chartContainer = document.getElementById('weeklyStatsChart');
         const yAxisContainer = document.getElementById('weeklyStatsYAxis');
         const gridLinesContainer = document.getElementById('weeklyStatsGridLines');
@@ -766,7 +722,7 @@
             </div>
             <div class="legend-item">
               <span class="legend-color legend-correct"></span>
-              <span>맞은 단어</span>
+              <span>정답 횟수</span>
             </div>
           </div>
         </div>
@@ -807,7 +763,11 @@
                
                <!-- Button (Right) -->
                <div>
-                  <form action="{% url 'words:quiz' %}" method="get" class="quiz-header-form">
+                  <form action="{% url 'words:quiz' %}" method="get" class="d-flex flex-wrap gap-2">
+                     <select name="language" class="form-select w-auto" aria-label="퀴즈 언어"><option value="">모든 언어</option><option value="zh">중국어</option><option value="en">영어</option></select>
+                     <select name="num_quiz" class="form-select w-auto" aria-label="문제 수"><option value="10">10개</option><option value="20" selected>20개</option><option value="50">50개</option><option value="all">전체 (최대 1,000개)</option></select>
+                     <select name="kind" class="form-select w-auto" aria-label="학습 유형"><option value="all">신규+복습</option><option value="new">신규</option><option value="review">복습</option></select>
+                     <label><input type="checkbox" name="test_tone" value="1"> 성조도 시험</label>
                     <button type="submit" class="btn-base-modern btn-flashcard">
                        <i class="fas fa-play me-2"></i>퀴즈 시작
                      </button>
@@ -831,7 +791,7 @@
                <p class="text-muted mb-0 small">틀린 단어 집중 복습</p>
             </div>
             <div class="col-md-5 text-md-end mt-2 mt-md-0">
-               {% if total_learning_words > 0 %}
+               {% if wrong_words_count > 0 %}
                    <a href="{% url 'words:flashcard_list' %}" class="btn-base-modern btn-quiz">
                        <i class="fas fa-arrow-right me-2"></i>복습하기
                    </a>
@@ -880,7 +840,7 @@
               </div>
             {% endif %}
             {% else %}
-               {% if total_learning_words > 0 %}
+               {% if wrong_words_count > 0 %}
                    <div class="text-center py-4">
                        <div style="font-size: 3rem; margin-bottom: 1rem;">
                            <i class="fas fa-check-circle text-success" style="opacity: 0.8;"></i>

@@ -264,3 +264,10 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,django
+# Collected static files, local databases/backups, and coverage
+/static/
+*.sqlite3*
+/backups/
+coverage.xml
+.coverage
+!.env.example

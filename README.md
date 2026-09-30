@@ -1,199 +1,121 @@
-# 중국어 단어장 (Chinese Vocabulary)
+# 나의 단어장 · Chinese & English Vocabulary
 
-중국어 단어 학습을 위한 웹 애플리케이션입니다. 단어를 추가하고, 퀴즈를 통해 복습하며, 간격 반복 학습 알고리즘으로 효율적으로 중국어 단어를 암기할 수 있습니다.
+Django 기반 중국어·영어 단어 학습 웹앱입니다. 공용 사전과 개인별 뜻·병음·메모를 분리하고, 한국 시간 오전 4시를 기준으로 복습 일정을 관리합니다.
 
 ## 주요 기능
 
-### 📚 단어 관리
-- **단어 추가**: 중국어 단어, 병음, 성조, 의미, 품사를 입력하여 단어장에 추가
-- **품사별 관리**: 동일한 단어라도 품사가 다르면 별도로 관리 (예: 好 - 명사/형용사)
-- **의미 길이 힌트**: 퀴즈에서 의미 입력 시 글자 수 힌트 제공
+- 중국어·영어 단어 등록, 검색, 품사·언어·복습 상태 필터, 페이지 나누기
+- 개인별 뜻·병음·성조 수정, 추가 정답(한 줄에 하나), 태그·예문·메모
+- 학습 일시정지 및 내 목록에서 제외 (공용 단어와 과거 학습 기록은 보존)
+- 10/20/50개 또는 전체 퀴즈, 신규/복습 선택, 선택적 성조 시험
+- 오답 재출제, 정답 인정, 첫 시도 정답률·시도 횟수·문제별 결과
+- 같은 브라우저 탭에서 퀴즈 이어하기, 중복 제출·네트워크 재시도 방지
+- 오답/전체 플래시카드, 기기 음성을 이용한 중국어·영어 발음 듣기
+- UTF-8 CSV 미리보기 가져오기 및 검색 결과 내보내기
+- 회원가입·로그인·POST 로그아웃·비밀번호 변경, 로그인 시도 제한
 
-### 🎯 스마트 학습 시스템
-- **간격 반복 학습**: 정답 시 복습 간격을 점진적으로 늘려 효율적인 암기 지원
-- **개인화된 학습**: 사용자별로 학습 중인 단어와 복습 일정을 독립적으로 관리
-- **학습 통계**: 정답/오답 횟수, 복습 일수 등 학습 진행 상황 추적
+## 기술 구성
 
-### 📝 퀴즈 기능
-- **오늘의 퀴즈**: 복습이 필요한 단어들을 자동으로 선별하여 퀴즈 제공
-- **맞춤형 문제 수**: 1~20개 문제 중 원하는 수만큼 선택 가능
-- **오답 재학습**: 틀린 문제만 골라서 다시 풀 수 있는 기능
-- **상세한 결과 분석**: 정답과 내 답안을 비교하여 학습 효과 극대화
+Python 3.12 기준으로 검증합니다. Django 5.2 LTS, SQLite, Django Templates, Bootstrap 5, Vanilla JavaScript를 사용합니다. Bootstrap과 아이콘은 저장소에 포함해 외부 CDN 없이 제공합니다. 운영 의존성은 `requirements.txt`, 개발 도구는 `requirements-dev.txt`에 분리했습니다.
 
-### 🏠 대시보드
-- **학습 현황**: 총 학습 단어 수, 오늘 복습할 단어 수 한눈에 확인
-- **최근 추가 단어**: 최근에 추가한 단어 목록 확인
-- **오늘 복습할 단어**: 복습이 필요한 단어들을 미리 확인
-
-## 기술 스택
-
-### Backend
-- **Django 4.2**: Python 웹 프레임워크
-- **SQLite**: 데이터베이스 (개발 환경)
-- **Django Cache Framework**: 성능 최적화를 위한 캐싱
-
-### Frontend
-- **Bootstrap 5**: 반응형 UI 프레임워크
-- **Font Awesome**: 아이콘 라이브러리
-- **Vanilla JavaScript**: 동적 UI 구현
-
-### 주요 라이브러리
-- `python-dotenv`: 환경 변수 관리
-- `django-extensions`: 개발 도구
-
-## 프로젝트 구조
-
-```
-chinese-voca/
-├── accounts/          # 사용자 인증 앱
-│   ├── models.py      # User, LearningWord 모델
-│   ├── views.py       # 로그인/로그아웃/회원가입 뷰
-│   └── templates/     # 인증 관련 템플릿
-├── words/             # 단어 관리 앱
-│   ├── models.py      # Word 모델
-│   ├── views.py       # 단어 추가/퀴즈/결과 뷰
-│   ├── forms.py       # 단어 입력 폼
-│   └── templates/     # 단어 관련 템플릿
-├── newpjt/            # 프로젝트 설정
-│   ├── settings.py    # Django 설정
-│   ├── urls.py        # URL 라우팅
-│   └── middleware.py  # 로그인 필수 미들웨어
-├── templates/          # 공통 템플릿
-│   └── base.html      # 기본 레이아웃
-├── static/            # 정적 파일
-└── manage.py          # Django 관리 스크립트
+```text
+accounts/                  인증, 개인 학습 상태, 학습 기록
+words/models.py            공용 단어 사전 (언어+단어+품사 고유)
+words/forms.py             서버 입력 검증
+words/services.py          날짜·정규화·복습 일정·원자적 채점
+words/views.py             화면/API/CSV
+words/static/words/         퀴즈·플래시카드 JS/CSS
+newpjt/                    환경변수 설정, 인증 미들웨어
+tests/                     JavaScript 상태 전이 테스트
+docs/DEPLOYMENT.md          PythonAnywhere 배포·백업·복구
+docs/CHANGELOG.md           변경 내역 및 제한 사항
 ```
 
-## 설치 및 실행
+## 로컬 실행
 
-### 필수 요구사항
-- Python 3.8 이상
-- pip
-
-### 설치 단계
-
-1. **저장소 클론**
 ```bash
-git clone <repository-url>
+git clone https://github.com/shhwangofficial/chinese-voca.git
 cd chinese-voca
-```
-
-2. **가상환경 생성 및 활성화**
-```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
-
-# macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
-```
-
-3. **의존성 설치**
-```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-4. **환경 변수 설정**
-프로젝트 루트에 `.env` 파일을 생성하고 다음 내용을 추가하세요:
-```env
-SECRET_KEY=your-secret-key-here
-```
-
-Django 시크릿 키 생성 방법:
-```bash
+cp .env.example .env
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-5. **데이터베이스 마이그레이션**
+생성한 키를 `.env`의 `SECRET_KEY`에 입력하세요. 로컬에서는 `DEBUG=true`, `SECURE_SSL_REDIRECT=false`를 사용합니다. `.env`와 DB를 커밋하지 않습니다.
+
 ```bash
 python manage.py migrate
-```
-
-6. **관리자 계정 생성** (선택사항)
-```bash
-python manage.py createsuperuser
-```
-
-7. **개발 서버 실행**
-```bash
+python manage.py createsuperuser  # 선택: 공용 사전 관리
 python manage.py runserver
 ```
 
-브라우저에서 `http://127.0.0.1:8000` 접속
+<http://127.0.0.1:8000>에서 회원가입 후 단어를 추가합니다. 운영 서버 갱신은 반드시 [배포 문서](docs/DEPLOYMENT.md)를 먼저 확인하세요. Git push만으로 PythonAnywhere 웹앱이 갱신되지는 않습니다.
 
-## 사용 방법
+## 사용 규칙
 
-### 1. 회원가입 및 로그인
-- `/accounts/signup/`에서 새 계정 생성
-- `/accounts/login/`에서 로그인
+1. **추가**: 언어·단어·품사로 사전을 검색합니다. 없는 단어면 상세 정보를 입력합니다.
+2. **중국어**: 병음을 공백으로 구분합니다 (`ni hao`). 성조는 선택이며 입력하면 음절 수에 맞는 1~5 숫자를 사용합니다 (`3 3`). 경성은 5입니다. `v`·`u:`는 `ü`로 정규화합니다. 성조가 포함된 병음도 저장할 수 있지만 무성조 병음과 자동으로 동등 취급하지 않습니다.
+3. **영어**: 병음과 성조를 비워둡니다. 뜻만 채점합니다.
+4. **추가 정답**: 개인 수정 화면에서 `안녕`, `안녕하세요` 등을 각각 별도 줄에 입력합니다. 저장된 기본 뜻 또는 추가 정답 중 하나와 일치하면 맞습니다. 대소문자·연속 공백·유니코드 NFC를 정규화하며 임의의 부분 일치나 AI 의미 판정은 하지 않습니다.
+5. **개인 수정**: 다른 사용자가 보는 공용 사전은 바꾸지 않습니다. 공용 사전 수정은 Django 관리자에서 합니다.
+6. **이어하기**: 같은 계정·학습일·퀴즈 옵션의 상태를 현재 탭의 sessionStorage에 저장합니다. 탭을 닫거나 로그아웃하면 보장되지 않습니다. 새 탭/다른 기기 동기화는 지원하지 않습니다. 이미 서버에 저장된 채점은 다시 기록하지 않습니다.
+7. **정답 인정**: 가장 최근에 처리한, 이후 수정되지 않은 해당 학습 항목의 오답만 바꿀 수 있습니다. 이미 인정한 요청은 재전송해도 한 번만 적용됩니다.
 
-### 2. 단어 추가
-- 홈 화면에서 "단어 추가" 버튼 클릭
-- 단어와 품사를 입력하여 학습 목록에 추가
-- DB에 없는 단어는 상세 정보(병음, 성조, 의미)를 입력하여 추가
+## 복습 알고리즘
 
-### 3. 퀴즈 풀기
-- 홈 화면의 "오늘의 퀴즈" 섹션에서 문제 수 선택 (1~20개)
-- "퀴즈 시작" 버튼 클릭
-- 병음과 의미를 입력하여 정답 확인
+`learning_term`은 다음 정답에서 사용할 간격입니다. 실제 예정일은 `to_be_revised`가 기준입니다.
 
-### 4. 결과 확인 및 복습
-- 퀴즈 완료 후 결과 화면에서 정답률 확인
-- 틀린 문제는 "틀린 문제 다시 풀기" 버튼으로 재학습
-- 정답 시 자동으로 다음 복습 일정이 조정됨
+- 학습일: 한국 시간에서 4시간을 뺀 날짜 (04:00 변경)
+- 신규/오답 후 정답: 다음 학습일 04:00에 복습, 다음 간격은 3일
+- 그 외 정답: 현재 간격만큼 지난 학습일 04:00에 복습
+- 다음 간격: `ceil(현재 간격 × (1.5 + 0.5 / (1 + 누적 오답 수)) + 1)`
+- 간격 상한: 365일
+- 오답: 간격 0, 즉시 복습 가능, 퀴즈 큐 뒤에 재배치
+- 정답 인정: 해당 시도 이전의 서버 상태에서 정답으로 재계산. 시도 수를 두 번 늘리거나 오답 로그를 삭제하지 않음
 
-## 데이터베이스 모델
+오답 없는 단어의 실제 복습 간격은 1 → 3 → 7 → 15 → 31일 순입니다. 플래시카드는 일정과 채점 기록을 바꾸지 않습니다. 대시보드의 정답 횟수는 고유 단어 수가 아닌 학습 기록 건수입니다.
 
-### Word 모델
-- `word`: 중국어 단어 (최대 20자)
-- `pinyin`: 병음 (최대 40자)
-- `tone`: 성조
-- `meaning`: 한국어 의미 (최대 40자)
-- `meaning_length`: 의미 길이 (자동 계산)
-- `word_class`: 품사 (명사, 동사, 형용사 등)
-- `created_at`: 생성일시
-- `updated_at`: 수정일시
+## CSV 양식
 
-**제약 조건**: `word`와 `word_class`의 조합은 고유해야 함 (동일 단어라도 품사가 다르면 별도 관리)
+필수 헤더는 아래 앞 6개, 뒤 3개는 선택입니다. 언어는 `zh`/`en`, 품사는 `noun`, `pronoun`, `verb`, `adjective`, `numeral`, `adverb`, `preposition`, `interjection`을 사용합니다.
 
-### LearningWord 모델
-- `user`: 사용자 (ForeignKey)
-- `word`: 단어 (ForeignKey)
-- `learning_since`: 학습 시작일
-- `last_time_revised`: 마지막 복습일
-- `to_be_revised`: 다음 복습 예정일
-- `learning_term`: 학습 간격 (일 수)
-- `no_of_revision`: 총 복습 횟수
-- `wrong_count`: 오답 횟수
-- `correct_count`: 정답 횟수
+```csv
+language,word,word_class,pinyin,tone,meaning,accepted_meanings,notes,tags
+zh,你好,interjection,ni hao,3 3,안녕하세요,안녕,인사 표현,기초
+en,apple,noun,,,사과,,,음식
+```
 
-## 간격 반복 학습 알고리즘
+- UTF-8 또는 UTF-8 BOM, 최대 1MB·500행. 엑셀에서 `CSV UTF-8`로 저장합니다. `.xlsx` 자체는 지원하지 않습니다.
+- 미리보기에서 **모든 행**이 유효해야 확인 후 저장할 수 있습니다. 미리보기는 30분 유효합니다.
+- 파일 내 중복은 오류, 이미 본인이 학습 중인 단어는 건너뜁니다. 기존 뜻·메모를 덮어쓰지 않습니다.
+- 수식 실행 방지를 위해 위험한 셀은 내보낼 때 앞에 `'`를 붙이고 재가져오기 시 제거합니다.
+- CSV는 단어 데이터 이동용입니다. 복습 일정·계정·전체 학습 기록 복구는 DB 백업을 사용하세요.
 
-- **정답 시**: `learning_term = learning_term * 2 + 1` (복습 간격 점진적 증가)
-- **오답 시**: `learning_term = 0` (다음날 즉시 복습)
-- 복습 예정일은 `learning_term`일 후의 00시로 설정
+## 데이터와 보안
 
-## 성능 최적화
+- `Word`: 공용 단어, 병음, 성조, 뜻, 언어, 품사
+- `LearningWord`: 사용자-단어 고유 연결, 복습 일정, 개인 수정·메모, 동시 수정 버전
+- `StudyLog`: 요청 UUID, 채점 결과, 수정 전 상태, 정답 인정 시각. 과거 로그는 보존
+- `AuthThrottle`: 웹 프로세스 간 공유되는 DB 기반 인증 시도 제한
 
-- **캐싱**: 사용자 통계, 최근 단어, 오늘의 단어 목록을 1시간 캐시
-- **데이터베이스 인덱싱**: 자주 조회되는 필드에 인덱스 적용
-- **쿼리 최적화**: `select_related`, `prefetch_related` 활용
+세션 인증과 CSRF 보호를 사용합니다. 화면에 단어를 표시할 때 `textContent` 또는 Django 자동 이스케이프를 사용합니다. 운영에서는 HTTPS 쿠키와 HTTPS 리다이렉트가 기본이며, 정확한 호스트와 프록시 설정이 필요합니다. 학습 통계는 매번 조회하므로 프로세스별 캐시 불일치가 없습니다.
 
-## 보안
+## 테스트
 
-- **환경 변수**: SECRET_KEY는 `.env` 파일로 관리
-- **CSRF 보호**: Django 기본 CSRF 보호 활성화
-- **로그인 필수**: 대부분의 페이지는 로그인 필수 (미들웨어 적용)
-- **세션 관리**: 안전한 세션 쿠키 설정
+```bash
+pip install -r requirements-dev.txt
+python -m ruff check .
+python manage.py check --settings=newpjt.test_settings
+python manage.py makemigrations --check --dry-run --settings=newpjt.test_settings
+python manage.py test --settings=newpjt.test_settings
+node --test tests/quiz-state.test.mjs
+```
 
+테스트 설정은 메모리 DB와 테스트 전용 키를 사용하며 운영 설정으로 사용하면 안 됩니다. GitHub Actions에서 동일한 검사를 실행합니다. 테스트는 사용자 격리, CSRF, 중복 요청, 정답 인정, 트랜잭션 롤백, 날짜 경계, CSV, 기존 DB의 중복 연결 마이그레이션을 포함합니다.
 
 ## 라이선스
 
-이 프로젝트는 개인 학습 목적으로 제작되었습니다.
-
-## 기여
-
-버그 리포트나 기능 제안은 이슈로 등록해주세요.
-
----
+아직 오픈소스 라이선스를 지정하지 않았습니다. 공개 저장소라는 이유만으로 자유로운 재배포·재사용을 허용한다고 해석하지 마세요. 라이선스 선택은 저장소 소유자가 결정합니다.

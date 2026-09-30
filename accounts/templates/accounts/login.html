@@ -201,6 +201,7 @@
       {% endif %}
       <form action="{% url 'accounts:login' %}" method="post">
         {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
         <div class="form-group-custom">
           <label for="{{ form.username.id_for_label }}">
             <i class="fas fa-user me-1"></i>사용자명

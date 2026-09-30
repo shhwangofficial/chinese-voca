@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="h3">CSV 가져오기</h1>
+<p>UTF-8 CSV의 필수 열: <code>language,word,word_class,pinyin,tone,meaning</code><br>선택 열: <code>accepted_meanings,notes,tags</code>. 언어는 zh/en, 품사는 noun/verb/adjective 등을 사용합니다. 영어의 병음·성조는 비워두세요.</p>
+<p><a href="{% url 'words:export_words' %}">내 단어를 내보내 양식으로 사용하기</a>. 이미 내 목록에 있는 단어는 덮어쓰지 않습니다.</p>
+<form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">미리보기</button></form>
+{% if errors %}<div class="alert alert-danger mt-3"><p>아직 저장하지 않았습니다. 오류를 수정한 후 다시 가져오세요.</p><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+{% if preview %}<h2 class="h5 mt-4">미리보기 {{ preview|length }}개</h2><div class="table-responsive"><table class="table"><thead><tr><th>언어</th><th>단어</th><th>뜻</th></tr></thead><tbody>{% for row in preview %}<tr><td>{{ row.language }}</td><td>{{ row.word }}</td><td>{{ row.meaning }}</td></tr>{% endfor %}</tbody></table></div>
+{% if not errors %}<form method="post">{% csrf_token %}<input type="hidden" name="confirm" value="1"><button class="btn btn-success">확인 후 저장</button></form>{% endif %}{% endif %}
+{% endblock %}

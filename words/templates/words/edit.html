@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="h3">{{ learning.word.word }} · 내 학습 정보 수정</h1>
+<p>공용 사전: {{ learning.word.pinyin }} / {{ learning.word.tone }} / {{ learning.word.meaning }}</p>
+<p>변경 내용은 본인에게만 적용됩니다.</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary" type="submit">저장</button> <a href="{% url 'words:word_list' %}" class="btn btn-outline-secondary">취소</a></form>
+<details class="mt-4"><summary>학습 목록에서 제외</summary>
+<p>공용 단어와 과거 학습 기록은 남습니다. 다시 추가하면 복습 일정과 개인 메모는 새로 시작합니다.</p>
+<form method="post" action="{% url 'words:remove_word' learning.pk %}">{% csrf_token %}<button class="btn btn-outline-danger" type="submit">내 목록에서 제외하기</button></form></details>
+{% endblock %}
